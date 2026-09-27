@@ -7,7 +7,7 @@ set -uo pipefail
 mkdir -p /logs/verifier
 chmod 700 /logs/verifier
 # The submitted converter runs as an unprivileged user: the tests, the
-# salt, the verifier's venv (with the ORC reader) and the submitted
+# salt, the verifier's venv (with the ORC readers) and the submitted
 # archive are all unreadable to it.
 chmod -R go-rwx /tests 2>/dev/null || true
 chmod -R go-rwx /venv 2>/dev/null || true

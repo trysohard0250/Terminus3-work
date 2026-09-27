@@ -7,10 +7,13 @@ families are pinned in the maximum day so every regime (empty batch,
 single row, the 511/512/513 run boundaries, both signed extremes, a fully
 dense batch, a mixed batch with nulls, the 4096-row maximum, every
 character class in every string column in every spelling, nulls in
-exactly one column, columns null in every row, and the bounds of the
+exactly one column, columns null in every row, the bounds of the
 encodings themselves: byte run-length runs and literals past their caps,
-every RLE v2 bit width, constant runs and arithmetic sequences) is
-exercised regardless of the seed.
+every RLE v2 bit width, constant runs and arithmetic sequences, and the
+row-index regimes: a batch of exactly one 900-row group, a one-row
+second group, string streams spanning many compression chunks before a
+group boundary, and data streams that start, pause and end exactly at
+group boundaries) is exercised regardless of the seed.
 """
 import json
 import random
@@ -30,7 +33,8 @@ NOTES = ["", "ok", "late upstream", "resent by vendor", "ué中文",
 
 FAMILIES = ["empty", "single", "b511", "b512", "b513", "extremes",
             "dense", "mixed", "large", "charset", "latnull",
-            "allnull", "boolruns", "widths_a", "widths_b", "intpatterns"]
+            "allnull", "boolruns", "widths_a", "widths_b", "intpatterns",
+            "stride900", "stride901", "wide", "nullends"]
 
 # Pinned batch names exercise every corner of the stated name grammar
 # (1 to 64 characters of letters and digits with single interior
@@ -53,6 +57,10 @@ PINNED_STEMS = {
     "widths_a": "W1to16",
     "widths_b": "w17-to-64",
     "intpatterns": "IntPatterns",
+    "stride900": "Group-Edge-900",
+    "stride901": "g901",
+    "wide": "WIDE-strings-24",
+    "nullends": "nullEnds",
 }
 
 _ALNUM = ("abcdefghijklmnopqrstuvwxyz"
@@ -386,6 +394,28 @@ def _cumulative(rng, n):
     return out
 
 
+# ---------------------------------------------------------------------
+# Row-index and compression families. The row index groups rows 900 at
+# a time and every stream is chunked at 65536 content bytes, so the
+# positions an entry records depend on where a group boundary falls
+# relative to runs, bytes, bits and chunks. These batches put the
+# boundaries in every regime: a batch of exactly one full group, one
+# with a one-row second group, string streams so wide that boundaries
+# fall deep inside later chunks, and nullable columns whose data streams
+# start, pause and end exactly at group boundaries.
+
+STRIDE = 900
+BLOCK = 65536
+WIDE_ALPHABET = ("abcdefghijklmnopqrstuvwxyz0123456789 -_/"
+                 "éü中文☃→\U0001F4E6")
+
+
+def wide(rng, n):
+    """A string of n characters from a mixed one-to-four-byte alphabet,
+    so byte length exceeds character length unpredictably."""
+    return "".join(rng.choice(WIDE_ALPHABET) for _ in range(n))
+
+
 def filler(rng: random.Random) -> list:
     """A small extra batch: the drawn day is filled to the contract's
     24-batch maximum, so the stated batch-count bound is tested at its
@@ -581,5 +611,41 @@ def draw(rng: random.Random, family: str) -> list:
         out = [_row(rng, null_rate=0, note_null=0) for _ in range(n)]
         for r, a, b in zip(out, seq, lat):
             r["seq"], r["latency_ms"] = a, b
+        return out
+    if family == "stride900":
+        # exactly one full row group: a single index entry, no empty
+        # second group
+        return [_row(rng) for _ in range(STRIDE)]
+    if family == "stride901":
+        # one row past the stride: a second group holding one row
+        return [_row(rng) for _ in range(STRIDE + 1)]
+    if family == "wide":
+        # 1801..2599 rows (two boundaries inside the batch) whose three
+        # string columns each hold far more than one compression block
+        # of bytes before the first boundary, so every string DATA
+        # position names a later chunk with a nonzero content offset
+        out = [_row(rng, null_rate=0.05, note_null=0.1) for _ in
+               range(rng.randrange(1801, 2600))]
+        for i, r in enumerate(out):
+            r["event_id"] = wide(rng, rng.randrange(300, 1025))
+            r["feed_id"] = wide(rng, rng.randrange(64, 1025))
+            if r["note"] is not None:
+                r["note"] = wide(rng, 1024 if i % 3 else rng.randrange(0, 1025))
+        return out
+    if family == "nullends":
+        # 2000 rows, three groups: latency_ms is null in the whole first
+        # group and from the third group's first row on (its data stream
+        # begins at boundary 900 and ends at boundary 1800); note is null
+        # across the whole second group (no data between two boundaries,
+        # so two entries record the same position); breach is null from
+        # boundary 900 on (its data ends mid-byte at that boundary)
+        out = [_row(rng, null_rate=0, note_null=0) for _ in range(2000)]
+        for i, r in enumerate(out):
+            if i < STRIDE or i >= 2 * STRIDE:
+                r["latency_ms"] = None
+            if STRIDE <= i < 2 * STRIDE:
+                r["note"] = None
+            if i >= STRIDE:
+                r["breach"] = None
         return out
     raise ValueError(f"unknown family {family}")

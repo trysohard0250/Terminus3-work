@@ -17,7 +17,7 @@ tags = ["python", "file-formats", "columnar-storage", "serialization",
 languages = ["python"]
 
 difficulty = "advanced"
-expert_time_estimate_hours = 6
+expert_time_estimate_hours = 10
 
 difficulty_explanation = """\
 Retiring a pipeline and backfilling its archive in a columnar format is
@@ -29,43 +29,118 @@ the writer's misreadings instead of catching them. The format's container
 carries several layers that must each be exactly right at the bit level:
 the wire encoding of the metadata messages, run-length encodings in two
 generations with bit-packed payloads, validity streams interleaved with
-data streams, and byte-exact section accounting. The batches force the
-edges: empty batches, single rows, run-boundary row counts, both signed
-64-bit extremes, columns that are entirely null and batches with no nulls
-at all, empty and multibyte strings. The converter is also re-run at
-grading time on held-out batches from the same families, so the writer
-has to be general rather than tuned to the visible day. The corpus is
-synthetic, produced by a seeded generator, so outcomes are exact and no
-customer data is involved.\
+data streams, and byte-exact section accounting. On top of those, the
+archive has to be what its downstream readers actually consume: every
+stream and every metadata message chunked into raw-DEFLATE blocks
+behind the format's three-byte chunk headers, with every length in the
+container a compressed length; a row-group index whose entries record,
+per stream, the chunk and the decompressed offset of the run holding
+each group's first value plus the pending-value, pending-byte and bit
+counts inside that run - counts that differ between validity streams
+(rows) and data streams (non-null values), and that fall mid-byte for
+booleans when the 900-row stride crosses a byte; and column statistics
+at row-group, stripe and file level with their own field types and
+presence rules. None of that can be checked locally, and the grader
+does check it with the real C++ reader: it seeks into every row group
+through the file's own index and must read the right rows from there.
+The batches, visible and held-out, force the edges: empty batches, single rows, run-boundary
+and group-boundary row counts, both signed 64-bit extremes, columns
+that are entirely null, null across whole row groups, or never null,
+empty, multibyte and block-spanning strings. The converter is also
+re-run at grading time on held-out batches from these families and more, so
+the writer has to be general rather than tuned to the visible day. The
+corpus is synthetic, produced by a seeded generator, so outcomes are
+exact and no customer data is involved.\
 """
 
 solution_explanation = """\
 Write the container by hand from the format specification: protobuf wire
-format for the postscript, footer and stripe footer; byte run-length
-encoding for boolean and validity bits; RLE version 2 DIRECT runs with
-zigzag for the signed integer column, plain for string lengths; UTF-8 byte
-streams with a length stream for strings; a PRESENT stream only where a
-column has nulls; one stripe per file and no row indexes, with the section
-lengths accounted exactly; an empty batch reduces to header, schema-only
-footer and postscript. The reference solution does this in a few hundred
-lines of standard-library Python; the same file, taking its input and
-output directories as arguments, is delivered as /app/convert.py.\
+format for the postscript, footer, metadata, stripe footer and row
+index; every stream and every metadata message except the postscript
+written as raw-DEFLATE chunks of at most 65536 content bytes behind
+the three-byte chunk header, buffered and spilled lazily so a position
+recorded at a group boundary names the chunk that will hold it; byte
+run-length encoding for boolean and validity bits with the reference
+writer's buffering, so pending-byte counts stay under 130; RLE
+version 2 DIRECT runs with zigzag for the signed integer columns, plain
+for string lengths; UTF-8 byte streams with a length stream for
+strings; a PRESENT stream only where a column has nulls; at every
+900th row, before writing it, each column records its streams'
+positions (chunk offset, content offset, pending values, pending bytes
+and bits as the stream kind requires) and opens a statistics
+accumulator; the row index streams (one per column, root included)
+are laid out first in the stripe, then the data streams and the
+compressed stripe footer, with the section lengths accounted exactly;
+the same accumulators serialize the stripe statistics into the
+metadata section and the file statistics into the footer (sint64 for
+integer minimum, maximum and sum, sum omitted on 64-bit overflow,
+string minimum and maximum in byte order with a byte-length sum, a
+true count for booleans); the postscript declares ZLIB, the block
+size, format 0.12, writerVersion 6 and the magic; an empty batch
+reduces to header, a footer holding the schema and seven all-zero
+column statistics (numberOfValues 0, hasNull false, sums 0, bucket
+count 0), and
+postscript. The reference solution
+does this in about 500 lines of standard-library Python; the same
+file, taking its input and output directories as arguments, is
+delivered as /app/convert.py.\
 """
 
 verification_explanation = """\
 Two graded artifacts. The archive: /app/out must hold exactly one .orc
-per input batch and nothing else; every file is read with the pinned
+per input batch and nothing else, each a regular file; every file is
+first walked by the independent structural parser in /tests/walker.py
+(the walk runs before either reader, so the in-process Arrow reader
+only ever sees a well-formed container), then read with the pinned
 Apache Arrow 25.0.1 ORC reader and compared value for value, nulls
 included, against the verifier's own copy of the batches (expectations
-computed at grading time, no stored goldens), then walked by the
-independent structural parser in /tests/walker.py, which enforces
-exactly the shape rules the contract states.
+computed at grading time, no stored goldens), with the reader's own
+report of compression kind, block size, index stride and stripe count
+checked. The walker decodes the ZLIB chunk framing and the
+protobuf messages by hand and enforces exactly the rules the contract
+states (every chunk a complete raw-DEFLATE stream of 1 to 65536
+content bytes, never stored original; index streams first, one per
+column in column order; stream, index, data and footer lengths tiling
+the file exactly; ceil(n/900) index entries per column with exactly
+the stated number of positions per stream, each chunk offset the start
+of a chunk or the stream's end, content offsets within the chunk,
+pending counts within 511/129/7, first-group positions zero and
+positions never moving backwards, and - for the streams the walker
+can decode without an ORC library - exact positions: every packed-bit
+position (PRESENT, boolean DATA) must name a byte run-length run
+header from which the pending-byte and bit counts reach exactly the
+bit the rows imply, every string DATA position must name exactly the
+byte at which the group's first value begins, packed-bit streams must
+decode to exactly ceil(n/8) bytes and string DATA must equal the
+values' UTF-8 bytes; row-group, stripe and file
+statistics recomputed from the rows and compared field by field, with
+the stated presence rules for minimum, maximum and sum); and finally
+read again by the pinned Apache ORC C++ library (pyorc 0.11.0, in a
+subprocess: the C++ reader trusts the index positions it is handed, so
+a malformed index fails the file rather than the verifier, and the
+walker has validated the index's shape first), which must decode the
+same rows, report file statistics that agree with the rows (and, at
+stripe level, statistics that agree except for the integer sum: the
+library builds those by merging the row-group entries of the index,
+not from the metadata section, and its merge carries a sum across a
+group that omitted one, so the metadata section itself is graded by
+the walker), and - the check that makes the index real - seek to the
+first row of every row group
+by row number, which the library performs through the file's row
+index, then read the rest of the file and get exactly the batch's rows
+from that row on; it also seeks to rows inside groups and to the last
+row. Position mutants prove the seek is load-bearing: a pending-value
+count, a pending-byte count and a content offset each off by one pass
+both readers' whole-file decode and every walker rule, and fail only
+the C++ reader's seek (six tests: the multi-group visible batches and
+the held-out day); a bit count off by one fails the seek as well and,
+at the first group, the walker's all-zero rule.
 
 The converter: /app/convert.py is executed three times, each as
 python3 -I on the system interpreter in a fresh unprivileged process
 (setpriv, no-new-privs, 300 s per run), with PATH set to a nonexistent
 directory and with the tests, the key, the verifier's venv (holding the
-ORC reader) and the submitted archive chmod-locked away from it. Every
+ORC readers) and the submitted archive chmod-locked away from it. Every
 path an invocation sees - case directory, staged copy, scratch
 directory, IN_DIR and OUT_DIR - is a per-submission-random name, the
 grading root is execute-only, and the invocations run in an order drawn
@@ -86,7 +161,7 @@ batches; and a day at exactly the 24-batch maximum with one batch
 pinned per family - empty, single row, the 511/512/513 run boundaries,
 signed-64 extremes in both integer columns (nulls in note only), dense,
 mixed nulls with Unicode, the 4096-row maximum, nulls in latency_ms
-only, a character-class batch (nulls in breach only), and five batches
+only, a character-class batch (nulls in breach only), five batches
 that drive the bounds of the encodings themselves: all three nullable
 columns null in every row (identifiers empty in every row, so their
 string data is zero bytes); booleans packing into byte run-length runs
@@ -95,7 +170,17 @@ validity runs past 130 bytes; two 4096-row batches covering every
 width of the RLE v2 bit-width table, one width per 512-row block of
 each integer column; and integer run shapes (constant runs of 3, 10,
 11 and 600, arithmetic runs past 512 in both directions, varying
-steps, outliers, repeated signed-64 extremes). In the
+steps, outliers, repeated signed-64 extremes); and four batches that
+drive the row index and the chunking: exactly 900 rows (one full
+group, one entry), 901 rows (a one-row second group), a wide-string
+batch of 1801 to 2599 rows whose three string columns each hold more
+than four compression blocks of bytes before the first boundary (so
+string DATA positions name later chunks with nonzero content
+offsets), and a 2000-row batch whose nullable columns are null across
+whole groups (a data stream that starts at the first boundary and
+ends at the second, one that pauses across the middle group so two
+entries record one position, and a boolean stream that ends mid-byte
+at a boundary) - every shape machine-asserted on every run. In the
 character-class batch every string column holds, in each of four
 spellings (unescaped; lowercase-hex \\uXXXX; uppercase-hex; every
 character escaped with mixed-case hex, keys included), values holding
@@ -120,47 +205,74 @@ submitted converter whose key is baked only into the verifier image:
 deterministic per submission, unpredictable and unsteerable from the
 environment.
 
-Proven both directions this round (each passes the previous verifier
-and fails this one, privilege drop on): a converter that replaces
-supplementary-plane characters in feed_id with '?', one that does the
-same to BMP noncharacters in note (the two reported cases), and in the
-same family one that damages plane-end noncharacters in event_id, one
-that damages C1 controls in feed_id, NFC normalization, trimming
-event_id, dropping a leading U+FEFF, splitting rows with
-str.splitlines(), regex pre-decoding of \\u00XX escapes, rejecting -0,
-rejecting mixed-case hex, a 3 x 1024-byte string buffer, and reading
-the string "null" as a null. From our own sweep of the encodings'
-bounds, same both-direction proof: a byte run-length writer that emits
-131-byte runs, a bit-width table with a wrong code for 28 bits, a
-converter that fails on a column null in every row, and converters
-that corrupt +1 arithmetic runs, runs of exactly ten equal integers,
-or repeats of the signed-64 maximum (what broken DELTA and
-SHORT_REPEAT encoders do). Harness side: a detached background
-process that keeps re-forking outlived the previous /proc sweep and
-ran on into later invocations; now none survives past the end of its
-own invocation. Every adversary from earlier rounds still
-fails (canonical-order and delimiter parsers, NUL truncation, first-key
-and literal-key matchers, path-label and sibling-directory tricks,
+Proven both directions for the new rules (every one gets reward 0;
+those that both readers' whole-file decode lets through are caught by
+the walker, by the C++ reader's statistics report, or by its seek): a
+degenerate index whose positions all point at the stream start with
+the whole prefix as pending count; chunks larger than the declared
+block size; zlib-wrapped instead of raw DEFLATE; chunks stored
+original; no index streams at all (the C++ reader silently falls back
+to skipping from the stripe start, so the walker must be the one to
+require the index); no root index stream; rowIndexStride 0 with an
+index present; no metadata section; no statistics anywhere; too few
+and too many positions per entry; index streams laid out after the
+data streams; integer statistics written as int64 rather than sint64;
+a sum written on overflow; numberOfValues counting nulls; a string sum
+in characters rather than bytes; string minimum and maximum in UTF-16
+order (differs from code point order across the surrogate gap);
+row-group entries carrying file-level statistics; a wrong stripe row
+count; compression NONE or a wrong block size declared; nonzero
+first-group positions; a bit count of 8; an index truncated to two
+groups; stripe statistics missing a column; a PRESENT stream on a
+column with no nulls; hasNull omitted when false (both ORC readers
+take an absent hasNull as true, so the C++ library reports the column
+as nullable - found by this round's sweep and made an explicit rule);
+a type-specific statistics message of another kind on a column
+(intStatistics on a string column, collectionStatistics anywhere: the
+C++ reader segfaults on it - also found by the sweep, so the walker
+now rejects it before the reader runs, and the contract says so); a
+postscript without writerVersion, or with writerVersion 0 (the C++
+reader then discards the string and boolean statistics as
+pre-HIVE-8732, so the reported statistics differ from the rows -
+found by this round's coherence review; the contract now requires at
+least 1 and the walker names the field); a postscript without the
+magic field; a data stream for a nonexistent column; a string sum
+omitted when 0; a padding byte on packed-bit streams; a pending-byte
+count one too small (which the seek alone misses when the run's tail
+is uniform - the review's finding, now caught exactly by the walk);
+a string DATA position one byte early; a symbolic link in place of an
+output file; and the three position off-by-ones above. A writer that
+names an earlier run header and carries the byte count across runs
+(as the Java writer's literal-then-repeat split does) is accepted. Alternate legal
+constructions pass: a writer that ends every run and every chunk at a
+group boundary (positions chunk-start, 0, 0), chunks of 64 and of 900
+content bytes, positions serialized unpacked, bytesOnDisk, writer and
+softwareVersion fields present, unknown field numbers and groups in
+every metadata message (footer, metadata, stripe statistics, column
+statistics, stripe footer, row-index entries), an empty batch whose
+metadata section decodes to a message with no stripe statistics,
+numberOfValues omitted when 0, data streams in reverse order, a data
+stream that ends before a boundary (positions at the stream's end or
+at the last chunk's full length), and columns null in every row.
+The value comparison and the hold-out draws of earlier rounds are
+unchanged, and five of their adversaries were rebuilt on this round's
+writer and re-run to confirm it: NFC normalization, trimming
+event_id, splitting rows with str.splitlines(), a byte run-length
+writer emitting 131-byte runs, and a bit-width table with a wrong
+code for 28 bits all get reward 0 (the remaining ones - canonical-
+order and delimiter parsers, NUL truncation, first-key and
+literal-key matchers, path-label and sibling-directory tricks,
 whitespace-intolerant tokenizers, missing \\b, \\f, uppercase-hex or
 escaped-solidus handling, space-only line trimming, the U+10FFFF
-off-by-one, a bare-name host command).
+off-by-one, a bare-name host command, damaged noncharacters and
+controls, broken DELTA and SHORT_REPEAT shapes - fail on the same
+unchanged checks).
 
 The walker decodes protobuf by wire rules and grades only decoded
 values: repeated numeric fields packed, unpacked or mixed; a singular
-field occurring more than once decodes to its last occurrence; unknown
-fields, well-formed groups and known field numbers with a mismatched
-wire type are skipped (proven accepted by rebuilt exploits; wrong
-decoded values and malformed groups proven rejected). Twenty-one
-single-deviation writer mutants (wrong bit order, wrong zigzag scope,
-wrong run headers, inverted or superfluous validity streams,
-version-one run-length encoding, claimed compression, a wrong format
-version, index strides, a schema type swap, a gap between sections,
-UTF-16 strings, character instead of byte string lengths, a wrong
-stripe row count, a wrong content length, a byte run one past the
-130-byte cap, a wrong bit-width code) each fail the suite, while an
-alternate legal construction with different run chunking, stream order
-and writer metadata passes, so the walker checks the contract rather
-than one writer's habits.\
+field occurring more than once decodes to its last occurrence, an
+embedded message by concatenation; unknown fields, well-formed groups
+and known field numbers with a mismatched wire type are skipped.\
 """
 
 relevant_experience = """\
@@ -179,7 +291,7 @@ network_mode = "no-network"
 environment_mode = "separate"
 
 [agent]
-timeout_sec = 5400
+timeout_sec = 7200
 network_mode = "no-network"
 
 [environment]

@@ -55,7 +55,8 @@ Two artifacts are graded:
 
 1. For every /app/data/batches/<name>.jsonl, write /app/out/<name>.orc:
    the same rows, in the same order, as an Apache ORC file. /app/out must
-   contain exactly one .orc per input batch and nothing else.
+   contain exactly one .orc per input batch and nothing else, each a
+   regular file (no symbolic links, directories or special files).
 2. Write the converter itself to /app/convert.py. Invoked as
 
        python3 convert.py IN_DIR OUT_DIR
@@ -87,7 +88,7 @@ Two artifacts are graded:
    the environment variable PATH set to a directory that does not exist
    (a bare command name does not resolve), no network, no read access
    to /app or to the grader's own files (its tests, its key, and its
-   private environment holding the ORC reader), and a 300 second
+   private environment holding the ORC readers), and a 300 second
    budget per invocation. When an invocation exits, every process of
    the grading user that is still running is terminated before its
    output is read. Before the next invocation, the grading user's
@@ -100,7 +101,7 @@ Two artifacts are graded:
    columns (with nulls in note only), fully dense, mixed nulls with
    Unicode notes, the maximum-length batch, a batch with nulls in
    latency_ms only, a character-class batch (with nulls in breach
-   only), and batches that drive the bounds of the ORC encodings
+   only), batches that drive the bounds of the ORC encodings
    themselves: a batch whose three nullable columns are null in every
    row and whose event_id and feed_id are empty in every row (1100
    rows); a batch whose breach values pack into a byte run
@@ -115,7 +116,17 @@ Two artifacts are graded:
    in both integer columns (constant runs of 3, 10, 11 and 600
    values, arithmetic sequences of more than 512 values rising and
    falling, rising values with varying steps, small values with rare
-   large outliers, and repeats of both signed 64-bit extremes). In the
+   large outliers, and repeats of both signed 64-bit extremes); and
+   batches that drive the row index and the compression chunking of
+   section 3: a batch of exactly 900 rows (one full row group), a
+   batch of 901 rows (a second group holding one row), a wide-string
+   batch of 1801 to 2599 rows whose three string columns each hold
+   more than four times the compression block size of bytes (more
+   than 262144 bytes) before the first group boundary, and a 2000-row
+   batch whose nullable columns are
+   null across whole row groups (latency_ms null in the first group
+   and from the third group on, note null across the second group,
+   breach null from the second group on). In the
    character-class batch every string column holds
    values containing every character class of section 1 - all 66
    noncharacters, every UTF-8 encoding-length boundary (U+007F/U+0080,
@@ -152,48 +163,195 @@ Two artifacts are graded:
 
 ## 3. What the grader accepts
 
-Each submitted file is read with the ORC reader of Apache Arrow 25.0.1
-(pyarrow.orc), which is not present in this environment. The file must:
+Each submitted file is read with two ORC readers, neither of which is
+present in this environment: the ORC reader of Apache Arrow 25.0.1
+(pyarrow.orc) and the Apache ORC C++ library (pyorc 0.11.0). The file
+must:
 
-- open without error, and report exactly one stripe (no stripe when the
-  batch is empty) and the batch's row count;
+- open without error in both, and report exactly one stripe (no stripe
+  when the batch is empty), the batch's row count, ZLIB compression, a
+  compression block size of 65536 and a row index stride of 900;
 - carry exactly this schema, in this order:
   struct<event_id:string,feed_id:string,seq:bigint,latency_ms:bigint,breach:boolean,note:string>
-- decode to exactly the batch's values, row for row, nulls included.
+- decode to exactly the batch's values, row for row, nulls included,
+  in both readers;
+- report, through the ORC C++ reader, column statistics that agree
+  with the batch: at file level every figure the statistics rules
+  below define (numberOfValues, hasNull, minimum, maximum, sum or
+  count, with the same presence rules), and at stripe level - which
+  that reader builds by merging the row-group entries of the row
+  index, not from the metadata section - every figure but the integer
+  sum;
+- seek: for every row group of the file (rows are grouped 900 at a
+  time, see below) the grader positions the ORC C++ reader at the
+  group's first row by row number - a seek the reader performs through
+  the row index - and reads to the end of the file; the rows read must
+  be exactly the batch's rows from that row on. The grader also seeks
+  to rows inside groups (a seek to the group's entry followed by a
+  skip) and to the last row.
 
-In addition, the grader walks the container bytes directly and rejects the
-file unless all of the following hold:
+In addition, the grader walks the container bytes directly and rejects
+the file unless all of the following hold.
 
-- compression is NONE and the postscript declares format version 0.12;
-- the file metadata section is empty (metadataLength 0);
-- there are no row indexes: rowIndexStride is 0, the stripe's indexLength
-  is 0, and no ROW_INDEX stream appears;
-- headerLength is 3, the stripe starts at offset 3, the declared stream
-  lengths sum exactly to the stripe's dataLength, and contentLength equals
-  3 + dataLength + stripe footer length (an empty batch has contentLength
-  3 and no stripe);
+Compression:
+
+- the postscript declares compression ZLIB, compressionBlockSize 65536,
+  format version 0.12, a writerVersion of at least 1 (the readers
+  discard the string and boolean statistics of a file that declares an
+  older writer; 6 is a fine choice) and the magic string ORC (field
+  8000); the postscript itself is never compressed;
+- every stream (index and data alike), the stripe footer, the file
+  footer and the metadata section are compressed, each as a sequence
+  of chunks: a chunk is a three-byte little-endian header holding
+  (length << 1) | original, followed by exactly that many bytes holding
+  one complete raw DEFLATE stream (RFC 1951; no zlib or gzip wrapper)
+  that decompresses to between 1 and 65536 bytes. The original flag is
+  never set: no chunk is stored uncompressed. A stream of no bytes has
+  no chunks. All lengths in the container (stream lengths, indexLength,
+  dataLength, the stripe footer length, footerLength, metadataLength)
+  are compressed lengths.
+
+Layout and accounting:
+
+- headerLength is 3 and the stripe starts at offset 3; an empty batch
+  has no stripe and contentLength 3;
+- otherwise the stripe consists of its index streams, then its data
+  streams, then its stripe footer; its numberOfRows is the batch's row
+  count (as is the footer's), and contentLength equals
+  3 + indexLength + dataLength + stripe footer length; the metadata
+  section begins at contentLength, followed by the footer, the
+  postscript and its length byte;
+- the stripe footer lists the streams in the order they are laid out,
+  and they tile the index and data areas exactly: the first seven
+  streams are the ROW_INDEX streams of columns 0 to 6, in that order
+  (their lengths sum to indexLength), followed by the data streams in
+  any order (their lengths sum to dataLength); no other ROW_INDEX
+  stream appears;
 - column encodings are DIRECT_V2 for the bigint and string columns and
   DIRECT for the struct root and the boolean column;
-- a column carries a PRESENT stream exactly when it has at least one null
-  in that batch; string columns carry DATA and LENGTH streams, other
-  columns DATA only, and the struct root carries no stream.
+- a column carries a PRESENT stream exactly when it has at least one
+  null in that batch; string columns carry DATA and LENGTH streams,
+  other columns DATA only; the struct root carries no data stream;
+  every stream belongs to one of the seven columns (0 to 6); no
+  stream kind other than ROW_INDEX, PRESENT, DATA and LENGTH appears,
+  and no column carries the same stream kind twice. A stream is listed
+  in the stripe footer even when it holds no bytes (length 0, no
+  chunks: the DATA stream of a column null in every row, the DATA
+  stream of a string column empty in every row); its positions are
+  then 0, 0.
+
+Row index (rowIndexStride 900):
+
+- the footer declares rowIndexStride 900 in every file, the empty batch
+  included. Rows are grouped 900 at a time (rows 0-899, 900-1799, ...),
+  the last group may be shorter, and a batch of n rows has
+  ceil(n / 900) groups;
+- every column, the struct root included, carries a ROW_INDEX stream
+  holding a RowIndex message with one RowIndexEntry per group, in
+  group order;
+- every entry carries statistics; a data column's entry also carries
+  the positions of its streams, concatenated in the order PRESENT
+  (when the column has one), DATA, LENGTH (string columns); the root's
+  entries carry no positions at all. A stream's positions are:
+  - for every stream, two values: the offset within the stream of the
+    header of the chunk that holds the run (or, for string DATA, the
+    bytes) in which the group's first value lies, and the offset of
+    that run within the chunk's decompressed content. When the stream
+    holds no further bytes at that point, the chunk offset may instead
+    equal the stream's length (with content offset 0), and the content
+    offset may equal the chunk's content length;
+  - for an RLE v2 stream (DATA of a bigint column, LENGTH of a string
+    column) a third value: how many values a reader skips, decoding
+    from the run that begins at that content offset, to reach the
+    group's first value (0 to 511; a skip may run past that run into
+    the following ones, as the readers' own skip does);
+  - for a byte run-length stream of packed bits (every PRESENT stream,
+    and the DATA stream of the boolean column) a third value: how many
+    bytes a reader skips, decoding from the run that begins at that
+    content offset, to reach the byte holding the group's first bit
+    (0 to 129, likewise); and a fourth: how many bits of that byte
+    precede the group's first bit (0 to 7);
+  - a string DATA stream (raw bytes) carries the two offsets only:
+    together they name the content byte at which the group's first
+    value begins.
+  A string column's entry therefore holds 5 positions, a bigint
+  column's 3, the boolean column's 4, plus 4 for the PRESENT stream
+  when the column has one; the count must be exact. DATA and LENGTH
+  streams hold non-null values only, so their counts are counts of
+  non-null values, while PRESENT counts rows. The first group's
+  positions are all 0, and a stream's position never moves backwards
+  from one group to the next. The grader checks packed-bit and string
+  DATA positions exactly, from the rows: the content offset of a
+  packed-bit position is a run header (or the end of the content) and
+  the bytes decoded before that run plus the byte count reach the
+  byte holding the group's first bit - byte floor(n / 8), bit n mod 8,
+  n being the rows before the group for PRESENT and the non-null
+  values before it for the boolean DATA - and a string DATA position
+  reaches the total UTF-8 length of the column's values before the
+  group. For a stream that holds no value in or after the group
+  (every remaining row null), the same rule applies with n or the
+  byte total counting every value the stream holds: the natural
+  position, where the next value would have gone. RLE v2 positions
+  are checked for shape and bounds by the walk and for meaning by the
+  C++ reader's seek. Packed-bit streams hold exactly ceil(n / 8)
+  bytes for their n bits, and a string DATA stream is exactly the
+  UTF-8 bytes of the column's non-null values in row order.
+
+Statistics:
+
+- an entry's statistics describe the group's rows; the metadata section
+  holds a Metadata message with exactly one StripeStatistics whose
+  colStats describe the stripe; the footer's statistics describe the
+  file. The footer's statistics hold one ColumnStatistics per column
+  in column order, the struct root first (seven entries), in every
+  file, the empty batch included; StripeStatistics.colStats hold the
+  same seven entries whenever a stripe exists, and never for the empty
+  batch, which has no stripe: its metadata section is absent
+  (metadataLength 0) or decodes to a Metadata message with no
+  StripeStatistics;
+- a ColumnStatistics carries: numberOfValues, the number of non-null
+  values (for the root, the number of rows); hasNull, always written,
+  true when at least one value is null and false otherwise (the root
+  is never null; readers take an absent hasNull as true, so it is
+  never omitted); and the column's type-specific statistics:
+  - bigint columns: intStatistics with minimum and maximum, present
+    exactly when there is at least one value, and sum, present exactly
+    when the exact sum of the values fits a signed 64-bit integer (the
+    sum of no values is 0 and present). These are sint64 fields:
+    zigzag varints;
+  - string columns: stringStatistics with minimum and maximum, present
+    exactly when there is at least one value - the smallest and largest
+    values in code point order (for UTF-8 bytes, byte order), written
+    in full whatever their length - and sum, the total UTF-8 byte
+    length of the values (sint64, always present);
+  - the boolean column: bucketStatistics with exactly one count, the
+    number of true values;
+  - the root: no type-specific statistics.
+  A ColumnStatistics carries no type-specific statistics message other
+  than its column's own (no intStatistics on a string column, no
+  doubleStatistics, decimalStatistics, dateStatistics,
+  binaryStatistics, timestampStatistics or collectionStatistics
+  anywhere): the ORC C++ reader does not survive one, and the walk
+  rejects it. Other fields (bytesOnDisk, or field numbers the ORC
+  definition does not use) are not graded.
 
 The walk decodes the metadata messages by protobuf wire rules: any valid
 serialization is accepted, and only the decoded values are graded. A
 repeated numeric field may be packed, unpacked, or a mix, and its values
 concatenate in order; a singular field that occurs more than once decodes
-to its last occurrence (standard protobuf merge semantics); unknown
-fields are skipped without effect, including well-formed group fields
-and any occurrence of a known field number with a mismatched wire type
-(standard unknown-field handling).
+to its last occurrence (an embedded message field, by concatenation:
+standard protobuf merge semantics); unknown fields are skipped without
+effect, including well-formed group fields and any occurrence of a known
+field number with a mismatched wire type (standard unknown-field
+handling).
 
 Each of these rules applies to every graded file, whether it sits under
 /app/out or was produced by /app/convert.py on the held-out batches.
 
 ## 4. Environment
 
-Python 3.13 and its standard library. No network access. No ORC,
-Arrow, Avro or Parquet software is installed here, and none can be
-installed.
+Python 3.13 and its standard library (zlib included). No network
+access. No ORC, Arrow, Avro or Parquet software is installed here, and
+none can be installed.
 How you produce the bytes is up to you; the grader reads /app/out and
 runs /app/convert.py exactly as section 2 states, and nothing else.

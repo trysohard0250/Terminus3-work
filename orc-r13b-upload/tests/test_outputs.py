@@ -4,8 +4,11 @@ Two graded artifacts, both stated in /app/CONTRACT.md:
 
 1. /app/out - the archived day: exactly one .orc per input batch and
    nothing else. Every file is read with the pinned Apache Arrow ORC
-   reader and compared value for value against the batch, then walked
-   structurally by the independent parser in walker.py.
+   reader and compared value for value against the batch, walked
+   structurally by the independent parser in walker.py (compression
+   chunking, row index, statistics, byte accounting), and read again
+   with the Apache ORC C++ library (cppread.py, in a subprocess), which
+   also seeks to every row group through the file's own row index.
 2. /app/convert.py - the converter itself. It is executed in fresh
    unprivileged processes on the system interpreter in isolated mode,
    on held-out batches drawn at grading time from the
@@ -38,6 +41,8 @@ WORK = Path(os.environ.get("ORC_WORK", "/work"))
 SYS_PYTHON = os.environ.get("ORC_SYS_PYTHON", "/usr/local/bin/python3")
 DROP = os.environ.get("ORC_DROP", "1") == "1"
 CONVERT_TIMEOUT = 300        # seconds per converter invocation (CONTRACT.md 2)
+CPP_TIMEOUT = 60             # seconds per file for the ORC C++ reader (a
+                             # healthy read of the largest file takes ~0.5 s)
 SANDBOX_UID = 12000          # the unprivileged grading user
 
 COLUMNS = ["event_id", "feed_id", "seq", "latency_ms", "breach", "note"]
@@ -55,9 +60,17 @@ def load_batch(stem):
 
 
 def check_reader(path, recs, label):
-    """The pinned Apache Arrow ORC reader must see exactly the rows."""
+    """The pinned Apache Arrow ORC reader must see exactly the rows, and
+    report the stated compression, block size and index stride."""
     f = orc.ORCFile(path)
     assert f.nrows == len(recs), f"{label}: row count {f.nrows}"
+    assert f.nstripes == (1 if recs else 0), f"{label}: stripes {f.nstripes}"
+    assert f.compression == "ZLIB", f"{label}: compression {f.compression}"
+    assert f.compression_size == 65536, \
+        f"{label}: compression block size {f.compression_size}"
+    assert f.row_index_stride == 900, \
+        f"{label}: row index stride {f.row_index_stride}"
+    assert f.file_version == "0.12", f"{label}: version {f.file_version}"
     schema = f.schema
     assert schema.names == COLUMNS, f"{label}: field names {schema.names}"
     kinds = [str(schema.field(c).type) for c in COLUMNS]
@@ -70,9 +83,30 @@ def check_reader(path, recs, label):
 
 
 def check_structure(path, recs):
-    """Independent walk of the container against the stated shape rules."""
-    nulls = [any(r[c] is None for r in recs) for c in COLUMNS]
-    walker.walk(Path(path).read_bytes(), nulls, len(recs))
+    """Independent walk of the container against the stated shape rules,
+    the row index and the statistics."""
+    walker.walk(Path(path).read_bytes(), recs)
+
+
+def check_cpp_reader(path, recs, label):
+    """The Apache ORC C++ library must decode the rows, seek to every row
+    group through the row index, and report the stated statistics. Runs
+    in a subprocess: the C++ reader trusts the index positions it is
+    handed, so a malformed index must fail the file, not the verifier.
+    Called only after check_structure has validated the index's shape."""
+    try:
+        proc = subprocess.run([sys.executable, str(Path(__file__).parent /
+                                                   "cppread.py"), str(path)],
+                              input=json.dumps(recs), capture_output=True,
+                              text=True, timeout=CPP_TIMEOUT)
+    except subprocess.TimeoutExpired:
+        pytest.fail(f"{label}: the ORC C++ reader did not finish within "
+                    f"{CPP_TIMEOUT} s")
+    assert proc.returncode == 0, \
+        f"{label}: the ORC C++ reader failed (exit {proc.returncode})\n" \
+        f"{proc.stderr[-600:]}"
+    problems = json.loads(proc.stdout)
+    assert not problems, f"{label}: ORC C++ reader: {problems[0]}"
 
 
 def raw_fields(line):
@@ -155,21 +189,36 @@ def _zigzag(v):
 
 
 def check_output_set(out_dir, stems, label):
-    """Exactly one .orc per batch and nothing else in the output dir."""
+    """Exactly one .orc per batch and nothing else in the output dir,
+    each a regular file (no symlink, directory or special file: the
+    readers open these paths, and must only ever open the file itself)."""
     entries = sorted(p.name for p in Path(out_dir).iterdir())
     want = sorted(f"{s}.orc" for s in stems)
     assert entries == want, \
         f"{label}: output entries {entries} != required {want}"
+    for name in entries:
+        p = Path(out_dir) / name
+        assert not p.is_symlink() and p.is_file(), \
+            f"{label}: {name} is not a regular file"
 
 
 def test_input_coverage():
     """The batch families the contract talks about are all present."""
-    assert len(BATCHES) == 12
+    assert len(BATCHES) == 14
     sizes = {s: len(load_batch(s)) for s in BATCHES}
     assert min(sizes.values()) == 0                      # empty batch
     assert 1 in sizes.values()                           # single row
     assert 512 in sizes.values()                         # exact run boundary
+    assert 900 in sizes.values()                         # one full row group
+    assert 901 in sizes.values()                         # one-row second group
     assert max(sizes.values()) >= 4000                   # multi-run batch
+    # a batch whose string streams run past the compression block many
+    # times before the first row-group boundary
+    assert any(
+        all(sum(len(r[c].encode("utf-8")) for r in load_batch(s)[:900]
+                if r[c] is not None) > 4 * 65536
+            for c in ("event_id", "feed_id", "note"))
+        for s in BATCHES if sizes[s] > 1800), "no wide-string batch"
     all_rows = [r for s in BATCHES for r in load_batch(s)]
     for col in ("seq", "latency_ms"):
         vals = [r[col] for r in all_rows if r[col] is not None]
@@ -200,12 +249,24 @@ def test_output_exists(stem):
 
 @pytest.mark.parametrize("stem", BATCHES)
 def test_reader_values(stem):
-    check_reader(OUT_DIR / f"{stem}.orc", load_batch(stem), stem)
+    recs = load_batch(stem)
+    path = OUT_DIR / f"{stem}.orc"
+    check_structure(path, recs)          # the walk (pure Python) first, so
+    check_reader(path, recs, stem)       # the in-process reader only ever
+                                         # sees a well-formed container
 
 
 @pytest.mark.parametrize("stem", BATCHES)
 def test_structure(stem):
     check_structure(OUT_DIR / f"{stem}.orc", load_batch(stem))
+
+
+@pytest.mark.parametrize("stem", BATCHES)
+def test_cpp_reader(stem):
+    recs = load_batch(stem)
+    path = OUT_DIR / f"{stem}.orc"
+    check_structure(path, recs)          # index shape first: see cppread.py
+    check_cpp_reader(path, recs, stem)
 
 
 def test_converter_present():
@@ -263,7 +324,7 @@ def _run_convert(tag, batches, texts, case_name, script_name,
     independent of the serialization. An empty dict means an empty input
     directory. The process is fresh and unprivileged, runs the system
     interpreter in isolated mode, and cannot read /app or the grader's
-    files (tests, key, private venv with the ORC reader).
+    files (tests, key, private venv with the ORC readers).
     The grading directory, the staged file name and the scratch
     directory name are all meaningless per-submission-random names: no
     path component reveals which graded day an invocation is, and
@@ -334,8 +395,9 @@ def _run_convert(tag, batches, texts, case_name, script_name,
     check_output_set(out_dir, sorted(batches), f"holdout {tag}")
     for name in sorted(batches):
         path = out_dir / f"{name}.orc"
+        check_structure(path, batches[name])     # walk first (see above)
         check_reader(path, batches[name], name)
-        check_structure(path, batches[name])
+        check_cpp_reader(path, batches[name], name)
     # lock the finished case away from the sandbox uid, so no later
     # invocation can read or reuse this one's inputs, outputs or scratch
     os.chmod(case, 0o700)
@@ -353,11 +415,15 @@ def test_holdout_conversion():
     the 4096-row maximum, strings at the 1024-character maximum, every
     character class in every string column in every spelling, nulls in
     exactly one column for each nullable column, columns null in every
-    row, and batches that drive the encodings' own bounds (byte
+    row, batches that drive the encodings' own bounds (byte
     run-length runs and literals past their caps, every RLE v2 bit
-    width, constant runs and arithmetic sequences) - so the stated
-    bounds are tested at their endpoints and a converter special-cased
-    to the disclosed counts fails the drawn one."""
+    width, constant runs and arithmetic sequences), and batches that
+    drive the row index and the compression chunking (exactly one
+    900-row group, a one-row second group, string streams many chunks
+    wide before a boundary, data streams starting, pausing and ending
+    at boundaries) - so the stated bounds are tested at their endpoints
+    and a converter special-cased to the disclosed counts fails the
+    drawn one."""
     if not CONVERT.is_file():
         pytest.fail(f"{CONVERT} is missing")
     salt = (Path(__file__).parent / "salt.txt").read_bytes()
@@ -543,6 +609,25 @@ def test_holdout_conversion():
         assert any(d < 0 and n >= 513 for d, n in deltas), col
         assert (2**63 - 1, 5) in _runs(vals) and (-2**63, 5) in _runs(vals)
         assert 2**40 in vals and sum(0 <= v < 100 for v in vals) >= 300
+    # row-index and chunking families: one full group exactly, a one-row
+    # second group, every string column many chunks wide before the
+    # first boundary, and nullable columns null across whole groups
+    assert len(batches[pin["stride900"]]) == 900
+    assert len(batches[pin["stride901"]]) == 901
+    wide = batches[pin["wide"]]
+    assert 1801 <= len(wide) <= 2599
+    for col in ("event_id", "feed_id", "note"):
+        head = sum(len(r[col].encode("utf-8")) for r in wide[:900]
+                   if r[col] is not None)
+        assert head > 4 * 65536, f"wide batch: {col} holds {head} bytes"
+    ends = batches[pin["nullends"]]
+    assert len(ends) == 2000
+    assert all((r["latency_ms"] is None) == (i < 900 or i >= 1800)
+               for i, r in enumerate(ends))
+    assert all((r["note"] is None) == (900 <= i < 1800)
+               for i, r in enumerate(ends))
+    assert all((r["breach"] is None) == (i >= 900)
+               for i, r in enumerate(ends))
     drawn_names = names(1)
 
     mid = {}

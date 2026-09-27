@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Deterministic event batches for the ORC archiving task.
 
-Families each batch exercises (all stated in verification_explanation):
-single row, empty batch, exactly-512 and just-past-512 rows (run boundary),
-no nulls anywhere, all-null columns, int64 extremes and negatives in both
-integer columns,
-multibyte UTF-8 and empty strings, boolean run/literal stress, large batch.
+Families the visible batches exercise (test_input_coverage pins them):
+single row, empty batch, exactly-512 and just-past-512 rows (run
+boundary), a 900-row batch (one full row group) and a 901-row batch (a
+one-row second group), no nulls anywhere, all-null columns, int64
+extremes and negatives in both integer columns, multibyte UTF-8 and
+empty strings, boolean run/literal stress, a large batch, and a
+wide-string batch whose string streams span many compression blocks
+before the first group boundary.
 """
 import json
 import random
@@ -49,6 +52,16 @@ def rows(rng, n, null_rate=0.15, note_null=0.3, extremes=False):
     return out
 
 
+WIDE_ALPHABET = ("abcdefghijklmnopqrstuvwxyz0123456789 -_/"
+                 "éü中文☃→\U0001F4E6")
+
+
+def wide(rng, n):
+    """A string of n characters drawn from a mixed one-to-four-byte
+    alphabet, so byte length exceeds character length unpredictably."""
+    return "".join(rng.choice(WIDE_ALPHABET) for _ in range(n))
+
+
 def gen(seed, dest):
     rng = random.Random(seed)
     dest = Path(dest)
@@ -81,6 +94,19 @@ def gen(seed, dest):
     batches["b10-bool-stress"] = b10
     batches["b11-large"] = rows(rng, 2600)
     batches["b12-run-boundary"] = rows(rng, 512)
+    # one row past the 900-row index stride: two row groups, the second
+    # holding a single row
+    batches["b13-stride-edge"] = rows(rng, 901)
+    # wide strings: every string column's data runs past the 65536-byte
+    # compression block many times over, so the row-group boundaries at
+    # 900 and 1800 fall inside later chunks of every string stream
+    b14 = rows(rng, 1900, null_rate=0.05, note_null=0.1)
+    for i, r in enumerate(b14):
+        r["event_id"] = wide(rng, rng.randrange(300, 1025))
+        r["feed_id"] = wide(rng, rng.randrange(64, 1025))
+        if r["note"] is not None:
+            r["note"] = wide(rng, 1024 if i % 3 else rng.randrange(0, 1025))
+    batches["b14-wide"] = b14
 
     for name, recs in batches.items():
         with open(dest / f"{name}.jsonl", "w", encoding="utf-8") as f:
