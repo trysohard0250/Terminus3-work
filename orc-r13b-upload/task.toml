@@ -42,15 +42,23 @@ booleans when the 900-row stride crosses a byte; column statistics
 at row-group, stripe and file level with their own field types and
 presence rules; and a bloom filter per row group for every string and
 integer column, which is a byte-exact hashing pipeline - ORC's own
-single-lane Murmur3 64-bit variant with its seed, a 64-bit integer
-mix with sign-propagating shifts, signed 32-bit wrapping combination
-of the two halves, the bit-count and hash-count formulas, and the
-little-endian word layout of the bit set - where any slip anywhere
-changes the bits and nothing local can tell. None of that can be
-checked locally, and the grader does check it: the real C++ reader
-seeks into every row group through the file's own index and must read
-the right rows from there, and the walker recomputes every bloom
-filter from the rows and compares it bit for bit.
+single-lane Murmur3 64-bit variant with its seed (named, not
+restated, by the contract: like the run-length encodings it is
+defined by the format, and it is not the 128-bit MurmurHash3 that
+everyone knows), a 64-bit integer mix with sign-propagating shifts,
+signed 32-bit wrapping combination of the two halves, the bit-count
+and hash-count formulas, and the little-endian word layout of the bit
+set - where any slip anywhere changes the bits and nothing local can
+tell. None of that can be checked locally, and the grader does check
+it: the real C++ reader seeks into every row group through the file's
+own index and must read the right rows from there, and the walker
+recomputes every bloom filter from the rows and compares it bit for
+bit. Calibration on the earlier drafts drove this design: with the
+compression, index and statistics rules alone, three solver agents
+passed first try, and with the hash functions spelled out step by
+step in the contract a fourth did too; what remains hard is what the
+task has always been about, knowledge of the format that no local
+tool can confirm.
 The batches, visible and held-out, force the edges: empty batches, single rows, run-boundary
 and group-boundary row counts, both signed 64-bit extremes, columns
 that are entirely null, null across whole row groups, or never null,

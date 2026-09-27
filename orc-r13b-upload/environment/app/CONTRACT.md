@@ -319,35 +319,31 @@ them, so they are recomputed from the rows and compared bit for bit):
 - every non-null value of the group is added to its group's filter;
   nulls are not. A group whose values are all null yields a filter with
   no bit set;
-- a string value is hashed as its UTF-8 bytes with ORC's Murmur3
-  64-bit variant (org.apache.orc.util.Murmur3.hash64 in the Java
-  reader, the same in the C++ one), seed 104729: h = seed; for each
-  complete 8-byte block, read as a little-endian unsigned 64-bit
-  integer: k = rotl(k x 0x87c37b91114253d5, 31) x 0x4cf5ad432745937f;
-  h = h xor k; h = rotl(h, 27) x 5 + 0x52dce729; then the remaining 1
-  to 7 tail bytes, if any, read little-endian into k (byte j at bit
-  8j) and folded the same way: k = rotl(k x 0x87c37b91114253d5, 31)
-  x 0x4cf5ad432745937f; h = h xor k; then h = h xor length (in
-  bytes), and the final mix h = h xor (h >> 33); h = h x
-  0xff51afd7ed558ccd; h = h xor (h >> 33); h = h x
-  0xc4ceb9fe1a85ec53; h = h xor (h >> 33), every operation on
-  unsigned 64-bit values modulo 2^64 (rotl is a 64-bit left rotation).
-  This is not the 128-bit MurmurHash3 x64 variant (which mixes two
-  16-byte lanes) but ORC's single-lane 64-bit one;
-- an integer value is hashed with ORC's 64-bit mix, in signed 64-bit
-  two's complement arithmetic with wrapping adds and shifts and
-  sign-propagating right shifts: key = ~key + (key << 21); key = key
-  xor (key >> 24); key = key + (key << 3) + (key << 8); key = key xor
-  (key >> 14); key = key + (key << 2) + (key << 4); key = key xor (key
-  >> 28); key = key + (key << 31);
-- the 64-bit hash h sets 4 bits: hash1 = the low 32 bits of h as a
-  signed 32-bit integer, hash2 = the high 32 bits as a signed 32-bit
-  integer; for i = 1, 2, 3, 4: combined = hash1 + i x hash2 in
-  wrapping signed 32-bit arithmetic; if combined is negative, combined
-  = ~combined (its bitwise complement, which is non-negative); the bit
-  at position combined mod 5632 is set.
-  The grader's own implementation of these rules was checked bit for
-  bit against files written by the Apache ORC Java writer.
+- values are hashed exactly as the Apache ORC writers hash them for
+  the UTF8 bloom filter version. A string value is hashed as its
+  UTF-8 bytes with ORC's Murmur3 64-bit variant - the function the
+  ORC Java and C++ libraries implement as Murmur3.hash64
+  (org.apache.orc.util.Murmur3; the C++ port in the library's
+  BloomFilter sources), seeded with ORC's default seed 104729. That
+  function applies MurmurHash3's x64 block and finalization mixing to
+  8-byte little-endian blocks through a single 64-bit lane, folds the
+  remaining tail bytes in, and mixes in the length before the final
+  avalanche; it is not the first word of the 128-bit x64 MurmurHash3,
+  which mixes two lanes over 16-byte blocks. An integer value is
+  hashed with ORC's 64-bit integer mix, BloomFilter.getLongHash in the
+  same libraries (Thomas Wang's 64-bit mix in signed two's complement
+  arithmetic with sign-propagating right shifts);
+- the 64-bit hash h sets 4 bits as the bloom filter section of the
+  ORC specification states: hash1 = the low 32 bits of h as a signed
+  32-bit integer, hash2 = the high 32 bits as a signed 32-bit integer;
+  for i = 1, 2, 3, 4: combined = hash1 + i x hash2 in wrapping signed
+  32-bit arithmetic; if combined is negative, combined = ~combined
+  (its bitwise complement, which is non-negative); the bit at position
+  combined mod 5632 is set.
+  Like the run-length encodings and the protobuf messages, the hash
+  functions are defined by the ORC format, not restated here; the
+  grader's own implementation of them was checked bit for bit against
+  files written by the Apache ORC Java writer.
 
 Statistics:
 
