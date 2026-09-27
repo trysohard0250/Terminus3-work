@@ -87,9 +87,11 @@ strings; a PRESENT stream only where a column has nulls; at every
 900th row, before writing it, each column records its streams'
 positions (chunk offset, content offset, pending values, pending bytes
 and bits as the stream kind requires) and opens a statistics
-accumulator; the row index streams (one per column, root included)
-are laid out first in the stripe, then the data streams and the
-compressed stripe footer, with the section lengths accounted exactly;
+accumulator; the index area - each column's row index stream, root
+included, followed for the string and integer columns by its bloom
+filter stream - is laid out first in the stripe, then the data
+streams and the compressed stripe footer, with the section lengths
+accounted exactly;
 the same accumulators serialize the stripe statistics into the
 metadata section and the file statistics into the footer (sint64 for
 integer minimum, maximum and sum, sum omitted on 64-bit overflow,
@@ -107,7 +109,7 @@ reduces to header, a footer holding the schema and seven all-zero
 column statistics (numberOfValues 0, hasNull false, sums 0, bucket
 count 0), and
 postscript. The reference solution
-does this in about 500 lines of standard-library Python; the same
+does this in about 600 lines of standard-library Python; the same
 file, taking its input and output directories as arguments, is
 delivered as /app/convert.py.\
 """
@@ -125,13 +127,16 @@ report of compression kind, block size, index stride and stripe count
 checked. The walker decodes the ZLIB chunk framing and the
 protobuf messages by hand and enforces exactly the rules the contract
 states (every chunk a complete raw-DEFLATE stream of 1 to 65536
-content bytes, never stored original; index streams first, one per
-column in column order; stream, index, data and footer lengths tiling
-the file exactly; ceil(n/900) index entries per column with exactly
+content bytes, never stored original; stream, index, data and footer
+lengths tiling the file exactly; ceil(n/900) index entries per column with exactly
 the stated number of positions per stream, each chunk offset the start
 of a chunk or the stream's end, content offsets within the chunk,
 pending counts within 511/129/7, first-group positions zero and
-positions never moving backwards, and - for the streams the walker
+positions never moving backwards; the index area first - each
+column's ROW_INDEX stream in column order, followed for the five
+bloom-filter columns by its BLOOM_FILTER_UTF8 stream, twelve streams
+in all, and no other ROW_INDEX or BLOOM_FILTER_UTF8 stream anywhere;
+and - for the streams the walker
 can decode without an ORC library - exact positions: every packed-bit
 position (PRESENT, boolean DATA) must name a byte run-length run
 header from which the pending-byte and bit counts reach exactly the
@@ -143,13 +148,17 @@ five string and bigint columns, in BLOOM_FILTER_UTF8 streams laid out
 after each column's ROW_INDEX stream, bloomEncoding 1 declared)
 recomputed from the rows with the walker's own implementation of
 ORC's Murmur3 64-bit variant, 64-bit integer mix and bit-setting rule
-- an implementation checked bit for bit, on every column and row
-group of a 2433-row file, against a file written by the Apache ORC
-Java writer (orc-tools 2.1.3) with bloom filters enabled, which also
-settled the combine rule (hash1 + i*hash2), the little-endian word
-layout, bloomEncoding 1 and the ROW_INDEX-then-BLOOM_FILTER_UTF8
-order of the index area - and compared bit for bit; row-group, stripe
-and file
+- an implementation checked bit for bit against a file written by
+the Apache ORC Java writer (orc-tools 2.1.3) with bloom filters
+enabled on the five columns, on every column and row group of a
+2433-row file at the Java writer's minimum stride of 1000 (so
+6272-bit filters; the formulas and the hashing are the same code
+paths the 900-row, 5632-bit parameters use), which also settled the
+combine rule (hash1 + i*hash2), the little-endian word layout,
+bloomEncoding 1 and the ROW_INDEX-then-BLOOM_FILTER_UTF8 order of
+the index area; the reference writer's serialized bloom streams were
+then checked byte for byte against the same Java file at that stride
+- and compared bit for bit; row-group, stripe and file
 statistics recomputed from the rows and compared field by field, with
 the stated presence rules for minimum, maximum and sum); and finally
 read again by the pinned Apache ORC C++ library (pyorc 0.11.0, in a

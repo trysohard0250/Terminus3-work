@@ -621,10 +621,12 @@ def walk(data: bytes, records: list) -> None:
     if encodings != REQUIRED_ENCODING:
         _fail(f"column encodings must be {REQUIRED_ENCODING}, got {encodings}")
     for c, e in enumerate(encs):
-        want = 1 if c in BLOOM_COLUMNS else None
-        if _scalar(e, 3) != want:
-            _fail(f"column {c} bloomEncoding must be "
-                  f"{'1 (UTF8)' if want else 'absent'}")
+        got = _scalar(e, 3)
+        if c in BLOOM_COLUMNS and got != 1:
+            _fail(f"column {c} bloomEncoding must be 1 (UTF8)")
+        if c not in BLOOM_COLUMNS and got not in (None, 0):
+            _fail(f"column {c} carries no bloom filter and must not declare "
+                  f"bloomEncoding {got}")
 
     # streams, in the order they are laid out: the index area first
     # (every column's ROW_INDEX stream, each bloom column's
@@ -711,40 +713,8 @@ def walk(data: bytes, records: list) -> None:
     # the root) and statistics over the group's rows; and, for the
     # bloom columns, one bloom filter per group, recomputed from the rows
     groups = (nrows + STRIDE - 1) // STRIDE
-    index_at = {}
-    pos = 3
-    for kind, col, length in streams[:n_index]:
-        index_at[(kind, col)] = (pos, length)
-        pos += length
-    for c in BLOOM_COLUMNS:
-        start, length = index_at[(S_BLOOM, c)]
-        content, _ = dechunk(data[start:start + length],
-                             f"column {c} BLOOM_FILTER_UTF8")
-        filters = _all(parse_pb(content), 1)
-        if len(filters) != groups:
-            _fail(f"column {c} BLOOM_FILTER_UTF8 must hold {groups} "
-                  f"filters, got {len(filters)}")
-        for g, bf in enumerate(filters):
-            f = parse_pb(bf)
-            if _scalar(f, 1) != BLOOM_HASHES:
-                _fail(f"column {c} row group {g}: bloom filter must declare "
-                      f"{BLOOM_HASHES} hash functions")
-            got = _scalar_bytes(f, 3)
-            want = expected_bloom(columns[c][g * STRIDE:(g + 1) * STRIDE])
-            if got is None:
-                _fail(f"column {c} row group {g}: bloom filter carries no "
-                      "utf8bitset")
-            if len(got) != len(want):
-                _fail(f"column {c} row group {g}: bloom filter has "
-                      f"{len(got) * 8} bits, {BLOOM_BITS} required")
-            if got != want:
-                diff = sum(bin(a ^ b).count("1") for a, b in zip(got, want))
-                _fail(f"column {c} row group {g}: bloom filter differs from "
-                      f"the one the rows imply in {diff} bit(s)")
     for c in range(7):
-        start, length = index_at[(S_ROW_INDEX, c)]
-        content, _ = dechunk(data[start:start + length],
-                             f"column {c} ROW_INDEX")
+        content = tables[(c, S_ROW_INDEX)][2]
         entries = _all(parse_pb(content), 1)
         if len(entries) != groups:
             _fail(f"column {c} ROW_INDEX must hold {groups} entries, "
@@ -801,3 +771,29 @@ def walk(data: bytes, records: list) -> None:
             check_stats(stats, KINDS[c],
                         [r[COLUMNS[c - 1]] for r in rows] if c else rows,
                         label)
+
+    # the bloom filters: one per row group for every bloom column,
+    # recomputed from the rows and compared bit for bit
+    for c in BLOOM_COLUMNS:
+        content = tables[(c, S_BLOOM)][2]
+        filters = _all(parse_pb(content), 1)
+        if len(filters) != groups:
+            _fail(f"column {c} BLOOM_FILTER_UTF8 must hold {groups} "
+                  f"filters, got {len(filters)}")
+        for g, bf in enumerate(filters):
+            f = parse_pb(bf)
+            if _scalar(f, 1) != BLOOM_HASHES:
+                _fail(f"column {c} row group {g}: bloom filter must declare "
+                      f"{BLOOM_HASHES} hash functions")
+            got = _scalar_bytes(f, 3)
+            want = expected_bloom(columns[c][g * STRIDE:(g + 1) * STRIDE])
+            if got is None:
+                _fail(f"column {c} row group {g}: bloom filter carries no "
+                      "utf8bitset")
+            if len(got) != len(want):
+                _fail(f"column {c} row group {g}: bloom filter has "
+                      f"{len(got) * 8} bits, {BLOOM_BITS} required")
+            if got != want:
+                diff = sum(bin(a ^ b).count("1") for a, b in zip(got, want))
+                _fail(f"column {c} row group {g}: bloom filter differs from "
+                      f"the one the rows imply in {diff} bit(s)")

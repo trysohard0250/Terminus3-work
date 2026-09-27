@@ -231,8 +231,8 @@ Layout and accounting:
   BLOOM_FILTER_UTF8 stream appears;
 - column encodings are DIRECT_V2 for the bigint and string columns and
   DIRECT for the struct root and the boolean column; the encodings of
-  the five bloom-filter columns declare bloomEncoding 1 (UTF8), the
-  others declare none;
+  the five bloom-filter columns declare bloomEncoding 1 (UTF8); the
+  root's and the boolean column's carry no bloomEncoding, or 0;
 - a column carries a PRESENT stream exactly when it has at least one
   null in that batch; string columns carry DATA and LENGTH streams,
   other columns DATA only; the struct root carries no data stream;
@@ -292,14 +292,16 @@ them, so they are recomputed from the rows and compared bit for bit):
   BLOOM_FILTER_UTF8 stream, a BloomFilterIndex message with one
   BloomFilter per row group, in group order. A BloomFilter declares
   numHashFunctions 4 and carries utf8bitset: 5632 bits as 88 64-bit
-  words, each word little-endian (bit b of the set is bit b mod 64 of
-  word floor(b / 64), so byte floor(b / 8), bit b mod 8, of the 704
-  bytes). These are the ORC parameters for 900 expected entries at a
-  false-positive probability of 0.05: bits = floor(-900 ln 0.05 /
-  (ln 2)^2) = 5611, rounded up to the next multiple of 64 with at
-  least one full word added, 5611 + (64 - 5611 mod 64) = 5632; hash
-  functions = max(1, round(5632 / 900 x ln 2)) = 4;
-- every non-null value of the group is added to its group's filter;
+  words, each word little-endian, so bit b of the set is the bit of
+  value 2^(b mod 8) in byte floor(b / 8) of the 704 bytes (least
+  significant bit first, unlike the packed-bit streams). These are the
+  ORC parameters for 900 expected entries at a false-positive
+  probability of 0.05: nb = floor(-900 ln 0.05 / (ln 2)^2) = 5611
+  bits, then the ORC writer's rounding nb + (64 - nb mod 64), which
+  adds a whole word even when nb is already a multiple of 64: 5611 +
+  21 = 5632; hash functions = max(1, round(5632 / 900 x ln 2)) = 4;
+- every non-null value of the group is added to its group's filter
+  (the empty string is a value: its hash is that of zero bytes);
   nulls are not. A group whose values are all null yields a filter with
   no bit set;
 - values are hashed exactly as the Apache ORC writers hash them for
@@ -323,10 +325,12 @@ them, so they are recomputed from the rows and compared bit for bit):
   32-bit arithmetic; if combined is negative, combined = ~combined
   (its bitwise complement, which is non-negative); the bit at position
   combined mod 5632 is set.
-  Like the run-length encodings and the protobuf messages, the hash
-  functions are defined by the ORC format, not restated here; the
-  grader's own implementation of them was checked bit for bit against
-  files written by the Apache ORC Java writer.
+  The run-length encodings and the protobuf messages are defined by
+  the ORC specification; the two hash functions are defined by the
+  ORC libraries' implementation, which both readers share. Neither is
+  restated here. The grader's own implementation of the hash
+  functions was checked bit for bit against a file written by the
+  Apache ORC Java writer (orc-tools 2.1.3).
 
 Statistics:
 
