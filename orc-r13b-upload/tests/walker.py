@@ -17,7 +17,12 @@ readers' business (test_outputs.py); the walker grades structure,
 statistics and bloom filters."""
 from __future__ import annotations
 
+import os
+import sys
 import zlib
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import rlev2  # noqa: E402  (the Java writer's RLE v2, ported and validated)
 
 COLUMNS = ["event_id", "feed_id", "seq", "latency_ms", "breach", "note"]
 EXPECTED_TYPES = [("event_id", 7), ("feed_id", 7), ("seq", 4),
@@ -474,6 +479,11 @@ def _check_positions(pos, streams, targets, label):
             if pos[i + 2] > MAX_INT_SKIP:
                 _fail(f"{label}: {s.name} pending-value count {pos[i + 2]} "
                       f"exceeds {MAX_INT_SKIP}")
+            offset, pending = target
+            if at != offset or pos[i + 2] != pending:
+                _fail(f"{label}: {s.name} position reaches content byte {at} "
+                      f"with {pos[i + 2]} values pending; the ORC Java writer "
+                      f"records byte {offset} with {pending} pending")
         else:
             pending, bits = pos[i + 2], pos[i + 3]
             if pending > MAX_BYTE_SKIP:
@@ -708,11 +718,37 @@ def walk(data: bytes, records: list) -> None:
                 _fail(f"column {c} DATA is not the UTF-8 bytes of the "
                       "column's values in row order")
 
+    # the integer and length streams: byte-identical to what the Apache
+    # ORC Java writer encodes for the same values (rlev2.py is its port),
+    # and their row-index positions the ones that writer records
+    groups = (nrows + STRIDE - 1) // STRIDE
+    java_marks = {}
+    for c in range(1, 7):
+        vals = columns[c]
+        if KINDS[c] == "boolean":
+            continue
+        nn = [v for v in vals if v is not None]
+        if KINDS[c] == "long":
+            kind, ints, signed = S_DATA, nn, True
+        else:
+            kind, ints = S_LENGTH, [len(v.encode("utf-8")) for v in nn]
+            signed = False
+        bounds = [sum(1 for v in vals[:g * STRIDE] if v is not None)
+                  for g in range(groups)]
+        want, marks = rlev2.stream_and_positions(ints, signed, bounds)
+        content = tables[(c, kind)][2]
+        if content != want:
+            i = next((k for k, (a, b) in enumerate(zip(content, want))
+                      if a != b), min(len(content), len(want)))
+            _fail(f"column {c} stream kind {kind} is not what the ORC Java "
+                  f"writer encodes for these values: first difference at "
+                  f"content byte {i} of {len(want)} ({len(content)} written)")
+        java_marks[c] = marks
+
     # the row index: one entry per 900-row group in every column's
     # ROW_INDEX stream, with positions for the column's streams (none for
     # the root) and statistics over the group's rows; and, for the
     # bloom columns, one bloom filter per group, recomputed from the rows
-    groups = (nrows + STRIDE - 1) // STRIDE
     for c in range(7):
         content = tables[(c, S_ROW_INDEX)][2]
         entries = _all(parse_pb(content), 1)
@@ -744,9 +780,9 @@ def walk(data: bytes, records: list) -> None:
                 out.append((len(before) // 8, len(before) % 8))
             if KINDS[c] == "string":
                 out.append(sum(len(v.encode("utf-8")) for v in nn))
-                out.append(None)
+                out.append(java_marks[c][g])
             elif KINDS[c] == "long":
-                out.append(None)
+                out.append(java_marks[c][g])
             else:
                 out.append((len(nn) // 8, len(nn) % 8))
             return out

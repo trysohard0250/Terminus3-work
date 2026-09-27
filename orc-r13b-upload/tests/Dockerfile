@@ -16,7 +16,7 @@ RUN python3 -m venv /venv \
     && /venv/bin/pip install --no-cache-dir \
        pytest==9.1.1 pytest-json-ctrf==0.5.2 pyarrow==25.0.1 pyorc==0.11.0
 
-COPY test.sh test_outputs.py walker.py cppread.py gen_holdout.py salt.txt /tests/
+COPY test.sh test_outputs.py walker.py rlev2.py cppread.py gen_holdout.py salt.txt /tests/
 COPY data/ /tests/data/
 
 # Landing directory for the declared artifacts and converter scratch space.

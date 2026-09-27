@@ -233,6 +233,19 @@ Layout and accounting:
   DIRECT for the struct root and the boolean column; the encodings of
   the five bloom-filter columns declare bloomEncoding 1 (UTF8); the
   root's and the boolean column's carry no bloomEncoding, or 0;
+- the DATA streams of the two bigint columns and the LENGTH streams of
+  the three string columns are encoded exactly as the Apache ORC Java
+  writer encodes the same sequence of values (the non-null values in
+  row order; for LENGTH, the UTF-8 byte lengths): the RLE version 2
+  writer org.apache.orc.impl.RunLengthIntegerWriterV2 of Apache ORC
+  2.1.3, signed for the bigint columns and unsigned for the lengths,
+  with the SPEED encoding strategy's aligned bit packing (the
+  writer's defaults) - the same choice of SHORT_REPEAT, DIRECT,
+  PATCHED_BASE or DELTA for every run, the same run boundaries, bit
+  widths, base values and patch lists, byte for byte. The grader
+  re-encodes every such stream from the rows with its own port of that
+  writer, validated byte for byte against streams written by the Java
+  writer, and compares; the port is not in this environment;
 - a column carries a PRESENT stream exactly when it has at least one
   null in that batch; string columns carry DATA and LENGTH streams,
   other columns DATA only; the struct root carries no data stream;
@@ -277,13 +290,19 @@ Row index (rowIndexStride 900):
   bit; a string DATA position must name the byte at which the group's
   first value begins - in both cases the position a writer records at
   the boundary, including a stream that holds no further value); the
-  first group's positions are all 0; and a stream's position never
-  moves backwards from one group to the next. RLE v2 positions are
-  checked for meaning by the C++ reader's seek. Packed-bit streams
-  hold exactly ceil(n / 8) bytes for their n bits, and a string DATA
-  stream is exactly the UTF-8 bytes of the column's non-null values in
-  row order. Like the encodings themselves, the meaning of each
-  position value is defined by the ORC format and not restated here.
+  positions of the bigint DATA and string LENGTH streams are exactly
+  the ones the Apache ORC Java writer records for the group boundary
+  when it encodes those values - the content offset at which its next
+  run will begin and the number of values it holds pending there, as
+  its port in the grader reproduces them - and are compared exactly
+  as well; the first group's positions are all 0; and a stream's
+  position never moves backwards from one group to the next. Every
+  position is also checked for meaning by the C++ reader's seek.
+  Packed-bit streams hold exactly ceil(n / 8) bytes for their n bits,
+  and a string DATA stream is exactly the UTF-8 bytes of the column's
+  non-null values in row order. Like the encodings themselves, the
+  meaning of each position value is defined by the ORC format and not
+  restated here.
 
 Bloom filters (the readers' predicate pushdown prunes row groups with
 them, so they are recomputed from the rows and compared bit for bit):
@@ -387,6 +406,6 @@ Each of these rules applies to every graded file, whether it sits under
 
 Python 3.13 and its standard library (zlib included). No network
 access. No ORC, Arrow, Avro or Parquet software is installed here, and
-none can be installed.
+none can be installed; no Java either.
 How you produce the bytes is up to you; the grader reads /app/out and
 runs /app/convert.py exactly as section 2 states, and nothing else.

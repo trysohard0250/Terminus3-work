@@ -53,14 +53,24 @@ tell. None of that can be checked locally, and the grader does check
 it: the real C++ reader seeks into every row group through the file's
 own index and must read the right rows from there, and the walker
 recomputes every bloom filter from the rows and compares it bit for
-bit. Calibration on the earlier drafts drove this design: with the
-compression, index and statistics rules alone, three solver agents
-passed first try, and with the hash functions spelled out step by
-step in the contract a fourth did too, and with the meaning of every
-row-index position spelled out two more; the contract now states the
-graded facts about positions (count, offsets, bounds, exactness,
-seekability) and leaves their meaning to the format, like the
-encodings. What remains hard is what the task has always been about:
+bit. And the integer and length streams must be byte-identical to
+what the Apache ORC Java writer produces: its RLE v2 run selection -
+SHORT_REPEAT, DIRECT, PATCHED_BASE with its percentile widths, patch
+lists and gap encoding, DELTA fixed and variable - its run
+boundaries and the tail-run reshuffling that produces them, its
+aligned bit widths, and the positions it records at row-group
+boundaries; the grader re-encodes every stream with a port of that
+writer validated byte for byte against Java output. This is the part
+of ORC that no hand-written writer reproduces from memory: every
+simplification that would otherwise be legal (DIRECT runs only, runs
+cut at group boundaries) is a byte difference. Calibration on the
+earlier drafts drove this design: with the compression, index and
+statistics rules alone, three solver agents passed first try; with
+bloom filters spelled out, more did; with the hashes and positions
+stated by reference, still more (12 runs, 11 passes) - every one of
+them by choosing DIRECT-only runs cut at group boundaries and
+verifying with a reader of its own. The Java-identical rule removes
+that path. What remains hard is what the task has always been about:
 knowledge of the format that no local tool can confirm.
 The batches, visible and held-out, force the edges: empty batches, single rows, run-boundary
 and group-boundary row counts, both signed 64-bit extremes, columns
@@ -81,9 +91,12 @@ the three-byte chunk header, buffered and spilled lazily so a position
 recorded at a group boundary names the chunk that will hold it; byte
 run-length encoding for boolean and validity bits with the reference
 writer's buffering, so pending-byte counts stay under 130; RLE
-version 2 DIRECT runs with zigzag for the signed integer columns, plain
-for string lengths; UTF-8 byte streams with a length stream for
-strings; a PRESENT stream only where a column has nulls; at every
+version 2 exactly as the Java writer's RunLengthIntegerWriterV2
+chooses it (a port of that class: run detection, SHORT_REPEAT, DELTA,
+PATCHED_BASE, DIRECT, aligned bit packing) with zigzag for the signed
+integer columns, plain for string lengths; UTF-8 byte streams with a
+length stream for strings; a PRESENT stream only where a column has
+nulls; at every
 900th row, before writing it, each column records its streams'
 positions (chunk offset, content offset, pending values, pending bytes
 and bits as the stream kind requires) and opens a statistics
@@ -143,7 +156,17 @@ header from which the pending-byte and bit counts reach exactly the
 bit the rows imply, every string DATA position must name exactly the
 byte at which the group's first value begins, packed-bit streams must
 decode to exactly ceil(n/8) bytes and string DATA must equal the
-values' UTF-8 bytes; every bloom filter (one per row group for the
+values' UTF-8 bytes; every bigint DATA and string LENGTH stream must
+be byte-identical to what the Apache ORC Java writer's
+RunLengthIntegerWriterV2 (ORC 2.1.3, aligned bit packing) encodes
+for the same values, and its row-group positions the ones that
+writer records - recomputed by /tests/rlev2.py, a port of that class
+validated byte for byte against orc-tools 2.1.3 output on five
+adversarial 20000-row corpora (about 690 KB of encoded streams
+covering short repeats, fixed and variable deltas, patched base with
+gaps past 255, negative bases and 64-bit patch widths, delta
+overflow, every bit width, scope boundaries and unsigned lengths
+with zeros) and on the visible batches; every bloom filter (one per row group for the
 five string and bigint columns, in BLOOM_FILTER_UTF8 streams laid out
 after each column's ROW_INDEX stream, bloomEncoding 1 declared)
 recomputed from the rows with the walker's own implementation of
@@ -294,10 +317,15 @@ instead of arithmetic right shift in the integer mix, big-endian bit
 set words, nulls hashed in, bloomEncoding not declared, the
 BLOOM_FILTER_UTF8 streams missing, three hash functions, the length
 xor dropped from the string hash, and a negative combined hash left
-uncomplemented. A writer that names an earlier run header and
-carries the byte count across runs (as the Java writer's
-literal-then-repeat split does) is accepted, as is a bloom filter
-that carries the legacy bitset field alongside utf8bitset. Alternate legal
+uncomplemented; and, for the Java-identical integer streams: a
+writer using DIRECT runs only, one cutting its runs at every group
+boundary (the shortcut every calibration solver took), one packing
+at unaligned widths, one recording group positions as (run start, 0)
+instead of the Java writer's pending counts, and one whose
+SHORT_REPEAT threshold is off by one. A writer that names an earlier
+run header and carries the byte count across runs (as the Java
+writer's literal-then-repeat split does) is accepted, as is a bloom
+filter that carries the legacy bitset field alongside utf8bitset. Alternate legal
 constructions pass: a writer that ends every run and every chunk at a
 group boundary (positions chunk-start, 0, 0), chunks of 64 and of 900
 content bytes, positions serialized unpacked, bytesOnDisk, writer and
