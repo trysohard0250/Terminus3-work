@@ -222,19 +222,24 @@ Layout and accounting:
   section begins at contentLength, followed by the footer, the
   postscript and its length byte;
 - the stripe footer lists the streams in the order they are laid out,
-  and they tile the index and data areas exactly: the first seven
-  streams are the ROW_INDEX streams of columns 0 to 6, in that order
-  (their lengths sum to indexLength), followed by the data streams in
-  any order (their lengths sum to dataLength); no other ROW_INDEX
-  stream appears;
+  and they tile the index and data areas exactly: the index area comes
+  first - for each column 0 to 6 in order, its ROW_INDEX stream,
+  followed for the string and bigint columns (columns 1, 2, 3, 4 and
+  6) by its BLOOM_FILTER_UTF8 stream, twelve streams in all, whose
+  lengths sum to indexLength - then the data streams in any order
+  (their lengths sum to dataLength); no other ROW_INDEX or
+  BLOOM_FILTER_UTF8 stream appears;
 - column encodings are DIRECT_V2 for the bigint and string columns and
-  DIRECT for the struct root and the boolean column;
+  DIRECT for the struct root and the boolean column; the encodings of
+  the five bloom-filter columns declare bloomEncoding 1 (UTF8), the
+  others declare none;
 - a column carries a PRESENT stream exactly when it has at least one
   null in that batch; string columns carry DATA and LENGTH streams,
   other columns DATA only; the struct root carries no data stream;
   every stream belongs to one of the seven columns (0 to 6); no
-  stream kind other than ROW_INDEX, PRESENT, DATA and LENGTH appears,
-  and no column carries the same stream kind twice. A stream is listed
+  stream kind other than ROW_INDEX, BLOOM_FILTER_UTF8, PRESENT, DATA
+  and LENGTH appears, and no column carries the same stream kind
+  twice. A stream is listed
   in the stripe footer even when it holds no bytes (length 0, no
   chunks: the DATA stream of a column null in every row, the DATA
   stream of a string column empty in every row); its positions are
@@ -296,6 +301,53 @@ Row index (rowIndexStride 900):
   C++ reader's seek. Packed-bit streams hold exactly ceil(n / 8)
   bytes for their n bits, and a string DATA stream is exactly the
   UTF-8 bytes of the column's non-null values in row order.
+
+Bloom filters (the readers' predicate pushdown prunes row groups with
+them, so they are recomputed from the rows and compared bit for bit):
+
+- each of the five bloom-filter columns carries, in its
+  BLOOM_FILTER_UTF8 stream, a BloomFilterIndex message with one
+  BloomFilter per row group, in group order. A BloomFilter declares
+  numHashFunctions 4 and carries utf8bitset: 5632 bits as 88 64-bit
+  words, each word little-endian (bit b of the set is bit b mod 64 of
+  word floor(b / 64), so byte floor(b / 8), bit b mod 8, of the 704
+  bytes). These are the ORC parameters for 900 expected entries at a
+  false-positive probability of 0.05: bits = floor(-900 ln 0.05 /
+  (ln 2)^2) = 5611, rounded up to the next multiple of 64 with at
+  least one full word added, 5611 + (64 - 5611 mod 64) = 5632; hash
+  functions = max(1, round(5632 / 900 x ln 2)) = 4;
+- every non-null value of the group is added to its group's filter;
+  nulls are not. A group whose values are all null yields a filter with
+  no bit set;
+- a string value is hashed as its UTF-8 bytes with ORC's Murmur3
+  64-bit variant (org.apache.orc.util.Murmur3.hash64 in the Java
+  reader, the same in the C++ one), seed 104729: h = seed; for each
+  complete 8-byte block, read as a little-endian unsigned 64-bit
+  integer: k = rotl(k x 0x87c37b91114253d5, 31) x 0x4cf5ad432745937f;
+  h = h xor k; h = rotl(h, 27) x 5 + 0x52dce729; then the remaining 1
+  to 7 tail bytes, if any, read little-endian into k (byte j at bit
+  8j) and folded the same way: k = rotl(k x 0x87c37b91114253d5, 31)
+  x 0x4cf5ad432745937f; h = h xor k; then h = h xor length (in
+  bytes), and the final mix h = h xor (h >> 33); h = h x
+  0xff51afd7ed558ccd; h = h xor (h >> 33); h = h x
+  0xc4ceb9fe1a85ec53; h = h xor (h >> 33), every operation on
+  unsigned 64-bit values modulo 2^64 (rotl is a 64-bit left rotation).
+  This is not the 128-bit MurmurHash3 x64 variant (which mixes two
+  16-byte lanes) but ORC's single-lane 64-bit one;
+- an integer value is hashed with ORC's 64-bit mix, in signed 64-bit
+  two's complement arithmetic with wrapping adds and shifts and
+  sign-propagating right shifts: key = ~key + (key << 21); key = key
+  xor (key >> 24); key = key + (key << 3) + (key << 8); key = key xor
+  (key >> 14); key = key + (key << 2) + (key << 4); key = key xor (key
+  >> 28); key = key + (key << 31);
+- the 64-bit hash h sets 4 bits: hash1 = the low 32 bits of h as a
+  signed 32-bit integer, hash2 = the high 32 bits as a signed 32-bit
+  integer; for i = 1, 2, 3, 4: combined = hash1 + i x hash2 in
+  wrapping signed 32-bit arithmetic; if combined is negative, combined
+  = ~combined (its bitwise complement, which is non-negative); the bit
+  at position combined mod 5632 is set.
+  The grader's own implementation of these rules was checked bit for
+  bit against files written by the Apache ORC Java writer.
 
 Statistics:
 

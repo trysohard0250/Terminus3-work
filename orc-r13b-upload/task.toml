@@ -17,7 +17,7 @@ tags = ["python", "file-formats", "columnar-storage", "serialization",
 languages = ["python"]
 
 difficulty = "advanced"
-expert_time_estimate_hours = 10
+expert_time_estimate_hours = 12
 
 difficulty_explanation = """\
 Retiring a pipeline and backfilling its archive in a columnar format is
@@ -38,11 +38,19 @@ per stream, the chunk and the decompressed offset of the run holding
 each group's first value plus the pending-value, pending-byte and bit
 counts inside that run - counts that differ between validity streams
 (rows) and data streams (non-null values), and that fall mid-byte for
-booleans when the 900-row stride crosses a byte; and column statistics
+booleans when the 900-row stride crosses a byte; column statistics
 at row-group, stripe and file level with their own field types and
-presence rules. None of that can be checked locally, and the grader
-does check it with the real C++ reader: it seeks into every row group
-through the file's own index and must read the right rows from there.
+presence rules; and a bloom filter per row group for every string and
+integer column, which is a byte-exact hashing pipeline - ORC's own
+single-lane Murmur3 64-bit variant with its seed, a 64-bit integer
+mix with sign-propagating shifts, signed 32-bit wrapping combination
+of the two halves, the bit-count and hash-count formulas, and the
+little-endian word layout of the bit set - where any slip anywhere
+changes the bits and nothing local can tell. None of that can be
+checked locally, and the grader does check it: the real C++ reader
+seeks into every row group through the file's own index and must read
+the right rows from there, and the walker recomputes every bloom
+filter from the rows and compares it bit for bit.
 The batches, visible and held-out, force the edges: empty batches, single rows, run-boundary
 and group-boundary row counts, both signed 64-bit extremes, columns
 that are entirely null, null across whole row groups, or never null,
@@ -75,8 +83,15 @@ the same accumulators serialize the stripe statistics into the
 metadata section and the file statistics into the footer (sint64 for
 integer minimum, maximum and sum, sum omitted on 64-bit overflow,
 string minimum and maximum in byte order with a byte-length sum, a
-true count for booleans); the postscript declares ZLIB, the block
-size, format 0.12, writerVersion 6 and the magic; an empty batch
+true count for booleans); at the same group boundaries each string
+and integer column opens a bloom filter (5632 bits, 4 hash functions)
+into which every non-null value is hashed - strings by ORC's Murmur3
+64-bit variant of their UTF-8 bytes with seed 104729, integers by
+ORC's 64-bit mix - and the filters are serialized as
+BLOOM_FILTER_UTF8 streams laid out right after each column's row
+index, with bloomEncoding 1 in the column encodings; the postscript
+declares ZLIB, the block size, format 0.12, writerVersion 6 and the
+magic; an empty batch
 reduces to header, a footer holding the schema and seven all-zero
 column statistics (numberOfValues 0, hasNull false, sums 0, bucket
 count 0), and
@@ -112,7 +127,18 @@ header from which the pending-byte and bit counts reach exactly the
 bit the rows imply, every string DATA position must name exactly the
 byte at which the group's first value begins, packed-bit streams must
 decode to exactly ceil(n/8) bytes and string DATA must equal the
-values' UTF-8 bytes; row-group, stripe and file
+values' UTF-8 bytes; every bloom filter (one per row group for the
+five string and bigint columns, in BLOOM_FILTER_UTF8 streams laid out
+after each column's ROW_INDEX stream, bloomEncoding 1 declared)
+recomputed from the rows with the walker's own implementation of
+ORC's Murmur3 64-bit variant, 64-bit integer mix and bit-setting rule
+- an implementation checked bit for bit, on every column and row
+group of a 2433-row file, against a file written by the Apache ORC
+Java writer (orc-tools 2.1.3) with bloom filters enabled, which also
+settled the combine rule (hash1 + i*hash2), the little-endian word
+layout, bloomEncoding 1 and the ROW_INDEX-then-BLOOM_FILTER_UTF8
+order of the index area - and compared bit for bit; row-group, stripe
+and file
 statistics recomputed from the rows and compared field by field, with
 the stated presence rules for minimum, maximum and sum); and finally
 read again by the pinned Apache ORC C++ library (pyorc 0.11.0, in a
@@ -241,9 +267,17 @@ omitted when 0; a padding byte on packed-bit streams; a pending-byte
 count one too small (which the seek alone misses when the run's tail
 is uniform - the review's finding, now caught exactly by the walk);
 a string DATA position one byte early; a symbolic link in place of an
-output file; and the three position off-by-ones above. A writer that
-names an earlier run header and carries the byte count across runs
-(as the Java writer's literal-then-repeat split does) is accepted. Alternate legal
+output file; the three position off-by-ones above; and ten bloom
+filter mutants, each passing both readers' whole-file decode and
+every other rule: the (i + 1) combine rule, seed 0, a logical
+instead of arithmetic right shift in the integer mix, big-endian bit
+set words, nulls hashed in, bloomEncoding not declared, the
+BLOOM_FILTER_UTF8 streams missing, three hash functions, the length
+xor dropped from the string hash, and a negative combined hash left
+uncomplemented. A writer that names an earlier run header and
+carries the byte count across runs (as the Java writer's
+literal-then-repeat split does) is accepted, as is a bloom filter
+that carries the legacy bitset field alongside utf8bitset. Alternate legal
 constructions pass: a writer that ends every run and every chunk at a
 group boundary (positions chunk-start, 0, 0), chunks of 64 and of 900
 content bytes, positions serialized unpacked, bytesOnDisk, writer and

@@ -9,10 +9,12 @@ a PRESENT stream exactly for columns with at least one missing value, a
 row index with a 900-row stride whose entries carry the right number of
 positions within the right bounds - exact positions for packed-bit
 streams and string data, whose content the walk can decode without an
-ORC library - and per-group statistics, stripe statistics in the
-metadata section, file statistics in the footer, and exact byte
-accounting with no gaps. Values are the readers' business
-(test_outputs.py); the walker grades structure and statistics."""
+ORC library - and per-group statistics, a bloom filter per row group
+for every string and bigint column recomputed bit for bit from the
+rows, stripe statistics in the metadata section, file statistics in
+the footer, and exact byte accounting with no gaps. Values are the
+readers' business (test_outputs.py); the walker grades structure,
+statistics and bloom filters."""
 from __future__ import annotations
 
 import zlib
@@ -24,13 +26,101 @@ KINDS = ["struct", "string", "string", "long", "long", "boolean", "string"]
 DIRECT, DIRECT_V2 = 0, 2
 REQUIRED_ENCODING = [DIRECT, DIRECT_V2, DIRECT_V2, DIRECT_V2, DIRECT_V2,
                      DIRECT, DIRECT_V2]
-S_PRESENT, S_DATA, S_LENGTH, S_ROW_INDEX = 0, 1, 2, 6
+S_PRESENT, S_DATA, S_LENGTH, S_ROW_INDEX, S_BLOOM = 0, 1, 2, 6, 8
 C_ZLIB = 1
 BLOCK = 65536                # compression block size (CONTRACT.md 3)
 STRIDE = 900                 # row index stride (CONTRACT.md 3)
 MAX_INT_SKIP = 511           # values pending in an RLE v2 run
 MAX_BYTE_SKIP = 129          # bytes pending in a byte run-length run
 MAX_BITS = 7                 # bits consumed in a boolean byte
+BLOOM_COLUMNS = (1, 2, 3, 4, 6)     # string and bigint columns
+BLOOM_BITS, BLOOM_HASHES = 5632, 4  # 900 entries at fpp 0.05
+# the index area, in order: every column's ROW_INDEX stream, followed
+# for the bloom columns by their BLOOM_FILTER_UTF8 stream
+INDEX_STREAMS = [s for c in range(7) for s in
+                 ([(S_ROW_INDEX, c)] + ([(S_BLOOM, c)]
+                                        if c in BLOOM_COLUMNS else []))]
+
+
+# -------------------------------------------------------- bloom filters
+# ORC's bloom filter as the Java and C++ writers compute it (validated
+# bit for bit against files written by the Apache ORC Java writer).
+
+_MASK64 = (1 << 64) - 1
+_C1, _C2 = 0x87c37b91114253d5, 0x4cf5ad432745937f
+
+
+def _rotl64(x, r):
+    return ((x << r) | (x >> (64 - r))) & _MASK64
+
+
+def _fmix64(k):
+    k ^= k >> 33
+    k = (k * 0xff51afd7ed558ccd) & _MASK64
+    k ^= k >> 33
+    k = (k * 0xc4ceb9fe1a85ec53) & _MASK64
+    k ^= k >> 33
+    return k
+
+
+def murmur3_hash64(data, seed=104729):
+    """ORC's Murmur3 64-bit variant: 8-byte little-endian blocks through
+    a single lane, the tail folded byte by byte, the length, fmix64."""
+    h = seed
+    nblocks = len(data) >> 3
+    for i in range(nblocks):
+        k = int.from_bytes(data[i * 8:i * 8 + 8], "little")
+        k = _rotl64((k * _C1) & _MASK64, 31)
+        h ^= (k * _C2) & _MASK64
+        h = (_rotl64(h, 27) * 5 + 0x52dce729) & _MASK64
+    tail = data[nblocks * 8:]
+    if tail:
+        k = int.from_bytes(tail, "little")
+        k = _rotl64((k * _C1) & _MASK64, 31)
+        h ^= (k * _C2) & _MASK64
+    return _fmix64(h ^ len(data))
+
+
+def _sra64(x, s):
+    """Arithmetic right shift of a 64-bit two's complement value."""
+    return ((x - (1 << 64)) >> s) & _MASK64 if x >> 63 else x >> s
+
+
+def long_hash(key):
+    """ORC's 64-bit integer mix for bloom filters (Java long arithmetic:
+    wrapping adds and shifts, sign-propagating right shifts)."""
+    key &= _MASK64
+    key = ((~key & _MASK64) + (key << 21)) & _MASK64
+    key ^= _sra64(key, 24)
+    key = (key + (key << 3) + (key << 8)) & _MASK64
+    key ^= _sra64(key, 14)
+    key = (key + (key << 2) + (key << 4)) & _MASK64
+    key ^= _sra64(key, 28)
+    return (key + (key << 31)) & _MASK64
+
+
+def _int32(x):
+    x &= 0xFFFFFFFF
+    return x - (1 << 32) if x & 0x80000000 else x
+
+
+def expected_bloom(values):
+    """The bloom filter bit set (little-endian 64-bit words) of a row
+    group's non-null values."""
+    bits = bytearray(BLOOM_BITS // 8)
+    for v in values:
+        if v is None:
+            continue
+        h = murmur3_hash64(v.encode("utf-8")) if isinstance(v, str) \
+            else long_hash(v)
+        hash1, hash2 = _int32(h), _int32(h >> 32)
+        for i in range(1, BLOOM_HASHES + 1):
+            combined = _int32(hash1 + i * hash2)
+            if combined < 0:
+                combined = ~combined
+            pos = combined % BLOOM_BITS
+            bits[pos >> 3] |= 1 << (pos & 7)
+    return bytes(bits)
 
 
 class WalkError(AssertionError):
@@ -526,25 +616,33 @@ def walk(data: bytes, records: list) -> None:
                               3 + index_len + data_len + sfooter_len],
                          "stripe footer")
     sfooter = parse_pb(sfooter)
-    encodings = [_scalar(parse_pb(v), 1, 0) for v in _all(sfooter, 2)]
+    encs = [parse_pb(v) for v in _all(sfooter, 2)]
+    encodings = [_scalar(e, 1, 0) for e in encs]
     if encodings != REQUIRED_ENCODING:
         _fail(f"column encodings must be {REQUIRED_ENCODING}, got {encodings}")
+    for c, e in enumerate(encs):
+        want = 1 if c in BLOOM_COLUMNS else None
+        if _scalar(e, 3) != want:
+            _fail(f"column {c} bloomEncoding must be "
+                  f"{'1 (UTF8)' if want else 'absent'}")
 
-    # streams, in the order they are laid out: the seven ROW_INDEX
-    # streams first, one per column in column order, then data streams
+    # streams, in the order they are laid out: the index area first
+    # (every column's ROW_INDEX stream, each bloom column's
+    # BLOOM_FILTER_UTF8 stream right after its own), then data streams
     streams = []
     for v in _all(sfooter, 1):
         s = parse_pb(v)
         streams.append((_scalar(s, 1, 0), _scalar(s, 2, 0), _scalar(s, 3, 0)))
-    if len(streams) < 7 or [(k, c) for k, c, _ in streams[:7]] != \
-            [(S_ROW_INDEX, c) for c in range(7)]:
-        _fail("the first seven streams must be the ROW_INDEX streams of "
-              "columns 0 to 6, in that order")
-    if any(k == S_ROW_INDEX for k, _, _ in streams[7:]):
-        _fail("only one ROW_INDEX stream per column is allowed")
-    if sum(ln for _, _, ln in streams[:7]) != index_len:
-        _fail("ROW_INDEX stream lengths must sum to the stripe indexLength")
-    if sum(ln for _, _, ln in streams[7:]) != data_len:
+    n_index = len(INDEX_STREAMS)
+    if [(k, c) for k, c, _ in streams[:n_index]] != INDEX_STREAMS:
+        _fail(f"the first {n_index} streams must be the index streams "
+              f"{INDEX_STREAMS} (kind, column), in that order")
+    if any(k in (S_ROW_INDEX, S_BLOOM) for k, _, _ in streams[n_index:]):
+        _fail("no ROW_INDEX or BLOOM_FILTER_UTF8 stream may follow the "
+              "index area")
+    if sum(ln for _, _, ln in streams[:n_index]) != index_len:
+        _fail("index stream lengths must sum to the stripe indexLength")
+    if sum(ln for _, _, ln in streams[n_index:]) != data_len:
         _fail("data stream lengths must sum to the stripe dataLength")
 
     # walk every stream's chunks and keep the chunk tables and content
@@ -558,7 +656,7 @@ def walk(data: bytes, records: list) -> None:
         pos += length
 
     seen = {}
-    for kind, col, _ in streams[7:]:
+    for kind, col, _ in streams[n_index:]:
         if not 0 <= col <= 6:
             _fail(f"stream for nonexistent column {col}")
         seen.setdefault(col, []).append(kind)
@@ -610,11 +708,42 @@ def walk(data: bytes, records: list) -> None:
 
     # the row index: one entry per 900-row group in every column's
     # ROW_INDEX stream, with positions for the column's streams (none for
-    # the root) and statistics over the group's rows
+    # the root) and statistics over the group's rows; and, for the
+    # bloom columns, one bloom filter per group, recomputed from the rows
     groups = (nrows + STRIDE - 1) // STRIDE
+    index_at = {}
+    pos = 3
+    for kind, col, length in streams[:n_index]:
+        index_at[(kind, col)] = (pos, length)
+        pos += length
+    for c in BLOOM_COLUMNS:
+        start, length = index_at[(S_BLOOM, c)]
+        content, _ = dechunk(data[start:start + length],
+                             f"column {c} BLOOM_FILTER_UTF8")
+        filters = _all(parse_pb(content), 1)
+        if len(filters) != groups:
+            _fail(f"column {c} BLOOM_FILTER_UTF8 must hold {groups} "
+                  f"filters, got {len(filters)}")
+        for g, bf in enumerate(filters):
+            f = parse_pb(bf)
+            if _scalar(f, 1) != BLOOM_HASHES:
+                _fail(f"column {c} row group {g}: bloom filter must declare "
+                      f"{BLOOM_HASHES} hash functions")
+            got = _scalar_bytes(f, 3)
+            want = expected_bloom(columns[c][g * STRIDE:(g + 1) * STRIDE])
+            if got is None:
+                _fail(f"column {c} row group {g}: bloom filter carries no "
+                      "utf8bitset")
+            if len(got) != len(want):
+                _fail(f"column {c} row group {g}: bloom filter has "
+                      f"{len(got) * 8} bits, {BLOOM_BITS} required")
+            if got != want:
+                diff = sum(bin(a ^ b).count("1") for a, b in zip(got, want))
+                _fail(f"column {c} row group {g}: bloom filter differs from "
+                      f"the one the rows imply in {diff} bit(s)")
     for c in range(7):
-        content, _ = dechunk(data[3 + sum(ln for _, _, ln in streams[:c]):
-                                  3 + sum(ln for _, _, ln in streams[:c + 1])],
+        start, length = index_at[(S_ROW_INDEX, c)]
+        content, _ = dechunk(data[start:start + length],
                              f"column {c} ROW_INDEX")
         entries = _all(parse_pb(content), 1)
         if len(entries) != groups:

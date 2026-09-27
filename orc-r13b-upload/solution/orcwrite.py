@@ -9,7 +9,10 @@ written as a sequence of raw-DEFLATE chunks; byte run-length encoding
 for booleans and validity bits; RLE version 2 DIRECT runs for integers
 and string lengths; UTF-8 byte streams for string data; one row-index
 entry per 900-row group with stream positions and per-group statistics;
-statistics again for the stripe (metadata section) and for the file.
+statistics again for the stripe (metadata section) and for the file;
+and a bloom filter per row group for every string and bigint column
+(ORC's Murmur3 64-bit variant for strings, its 64-bit mix for
+integers, 5632 bits and 4 hash functions).
 """
 from __future__ import annotations
 
@@ -26,11 +29,92 @@ OUT = Path(os.environ.get("APP_OUT", "/app/out"))
 SCHEMA = [("event_id", "string"), ("feed_id", "string"), ("seq", "long"),
           ("latency_ms", "long"), ("breach", "boolean"), ("note", "string")]
 KIND = {"boolean": 0, "long": 4, "string": 7}
-S_PRESENT, S_DATA, S_LENGTH, S_ROW_INDEX = 0, 1, 2, 6
+S_PRESENT, S_DATA, S_LENGTH, S_ROW_INDEX, S_BLOOM = 0, 1, 2, 6, 8
 E_DIRECT, E_DIRECT_V2 = 0, 2
 C_ZLIB = 1
 STRIDE = 900                 # rows per row group (CONTRACT.md 3)
 BLOCK = 65536                # compression block size (CONTRACT.md 3)
+BLOOM_COLUMNS = {1, 2, 3, 4, 6}   # the string and bigint columns
+BLOOM_BITS, BLOOM_HASHES = 5632, 4  # 900 entries at fpp 0.05 (CONTRACT.md 3)
+
+
+# ------------------------------------------------------- bloom filters
+
+_MASK64 = (1 << 64) - 1
+_C1, _C2 = 0x87c37b91114253d5, 0x4cf5ad432745937f
+
+
+def _rotl64(x: int, r: int) -> int:
+    return ((x << r) | (x >> (64 - r))) & _MASK64
+
+
+def _fmix64(k: int) -> int:
+    k ^= k >> 33
+    k = (k * 0xff51afd7ed558ccd) & _MASK64
+    k ^= k >> 33
+    k = (k * 0xc4ceb9fe1a85ec53) & _MASK64
+    k ^= k >> 33
+    return k
+
+
+def murmur3_hash64(data: bytes, seed: int = 104729) -> int:
+    """ORC's Murmur3 64-bit variant: 8-byte little-endian blocks through
+    a single lane, the tail folded byte by byte, the length, fmix64."""
+    h = seed
+    nblocks = len(data) >> 3
+    for i in range(nblocks):
+        k = int.from_bytes(data[i * 8:i * 8 + 8], "little")
+        k = _rotl64((k * _C1) & _MASK64, 31)
+        h ^= (k * _C2) & _MASK64
+        h = (_rotl64(h, 27) * 5 + 0x52dce729) & _MASK64
+    tail = data[nblocks * 8:]
+    if tail:
+        k = int.from_bytes(tail, "little")
+        k = _rotl64((k * _C1) & _MASK64, 31)
+        h ^= (k * _C2) & _MASK64
+    return _fmix64(h ^ len(data))
+
+
+def _sra64(x: int, s: int) -> int:
+    """Arithmetic right shift of a 64-bit two's complement value."""
+    return ((x - (1 << 64)) >> s) & _MASK64 if x >> 63 else x >> s
+
+
+def long_hash(key: int) -> int:
+    """ORC's 64-bit integer mix for bloom filters (Java long arithmetic:
+    wrapping adds and shifts, sign-propagating right shifts)."""
+    key &= _MASK64
+    key = ((~key & _MASK64) + (key << 21)) & _MASK64
+    key ^= _sra64(key, 24)
+    key = (key + (key << 3) + (key << 8)) & _MASK64
+    key ^= _sra64(key, 14)
+    key = (key + (key << 2) + (key << 4)) & _MASK64
+    key ^= _sra64(key, 28)
+    return (key + (key << 31)) & _MASK64
+
+
+def _int32(x: int) -> int:
+    x &= 0xFFFFFFFF
+    return x - (1 << 32) if x & 0x80000000 else x
+
+
+class Bloom:
+    """One row group's bloom filter: BLOOM_BITS bits as little-endian
+    64-bit words, BLOOM_HASHES positions per value."""
+
+    def __init__(self):
+        self.bits = bytearray(BLOOM_BITS // 8)
+
+    def add(self, v) -> None:
+        h = murmur3_hash64(v.encode("utf-8")) if isinstance(v, str) \
+            else long_hash(v)
+        hash1, hash2 = _int32(h), _int32(h >> 32)
+        for i in range(1, BLOOM_HASHES + 1):
+            combined = _int32(hash1 + i * hash2)
+            if combined < 0:
+                combined = ~combined
+            pos = combined % BLOOM_BITS
+            self.bits[pos >> 3] |= 1 << (pos & 7)
 
 
 # ------------------------------------------------------------ protobuf
@@ -389,11 +473,14 @@ def write_orc(path: Path, records: list) -> None:
         cols = [Column(kind, [r[name] for r in records])
                 for name, kind in SCHEMA]
         index = [[] for _ in kinds]          # per column: [(positions, Stats)]
+        blooms = [[] for _ in kinds]         # per bloom column: [Bloom]
         for i, rec in enumerate(records):
             if i % STRIDE == 0:
                 for c, k in enumerate(kinds):
                     pos = [] if c == 0 else cols[c - 1].positions()
                     index[c].append((pos, Stats(k)))
+                    if c in BLOOM_COLUMNS:
+                        blooms[c].append(Bloom())
             file_stats[0].count += 1
             index[0][-1][1].count += 1
             for c, (name, _) in enumerate(SCHEMA, start=1):
@@ -401,6 +488,8 @@ def write_orc(path: Path, records: list) -> None:
                 cols[c - 1].write(v)
                 index[c][-1][1].add(v)
                 file_stats[c].add(v)
+                if v is not None and c in BLOOM_COLUMNS:
+                    blooms[c][-1].add(v)
 
         stream_meta, data = [], bytearray()
         for c in range(len(kinds)):
@@ -410,6 +499,14 @@ def write_orc(path: Path, records: list) -> None:
             payload = compressed(entries)
             stream_meta.append((S_ROW_INDEX, c, len(payload)))
             data.extend(payload)
+            if c in BLOOM_COLUMNS:
+                filters = b"".join(
+                    pb_bytes(1, pb_varint(1, BLOOM_HASHES)
+                             + pb_bytes(3, bytes(b.bits)))
+                    for b in blooms[c])
+                payload = compressed(filters)
+                stream_meta.append((S_BLOOM, c, len(payload)))
+                data.extend(payload)
         index_len = len(data)
         for c, col in enumerate(cols, start=1):
             for skind, payload in col.finish():
@@ -422,9 +519,10 @@ def write_orc(path: Path, records: list) -> None:
         for skind, col, length in stream_meta:
             sfooter += pb_bytes(1, pb_varint(1, skind) + pb_varint(2, col)
                                 + pb_varint(3, length))
-        for kind in kinds:
+        for c, kind in enumerate(kinds):
             enc = E_DIRECT if kind in ("struct", "boolean") else E_DIRECT_V2
-            sfooter += pb_bytes(2, pb_varint(1, enc))
+            sfooter += pb_bytes(2, pb_varint(1, enc) + (
+                pb_varint(3, 1) if c in BLOOM_COLUMNS else b""))  # UTF8 bloom
         sfooter += pb_bytes(3, b"UTC")
         sfooter = compressed(bytes(sfooter))
         body.extend(sfooter)
