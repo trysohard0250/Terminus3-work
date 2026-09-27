@@ -1,0 +1,190 @@
+# TB3.0 task manifest.
+
+name = "orc-feed-archive"
+
+# The verifier reads the submitted archive files and executes the
+# submitted converter on held-out batches in an isolated process.
+artifacts = ["/app/out", "/app/convert.py"]
+
+[metadata]
+author_name = "Daniel Jobe"
+author_email = "danieljobe0250@outlook.com"
+
+category = "Software"
+subcategory = "Data engineering"
+tags = ["python", "file-formats", "columnar-storage", "serialization",
+        "data-pipelines"]
+languages = ["python"]
+
+difficulty = "advanced"
+expert_time_estimate_hours = 6
+
+difficulty_explanation = """\
+Retiring a pipeline and backfilling its archive in a columnar format is
+bread-and-butter work for a data platform engineer, and the trap in it is
+the one this task keeps: the environment has no software that can read the
+format back, so the file has to be right from knowledge of the format
+alone, and a reader the author writes to check their own writer inherits
+the writer's misreadings instead of catching them. The format's container
+carries several layers that must each be exactly right at the bit level:
+the wire encoding of the metadata messages, run-length encodings in two
+generations with bit-packed payloads, validity streams interleaved with
+data streams, and byte-exact section accounting. The batches force the
+edges: empty batches, single rows, run-boundary row counts, both signed
+64-bit extremes, columns that are entirely null and batches with no nulls
+at all, empty and multibyte strings. The converter is also re-run at
+grading time on held-out batches from the same families, so the writer
+has to be general rather than tuned to the visible day. The corpus is
+synthetic, produced by a seeded generator, so outcomes are exact and no
+customer data is involved.\
+"""
+
+solution_explanation = """\
+Write the container by hand from the format specification: protobuf wire
+format for the postscript, footer and stripe footer; byte run-length
+encoding for boolean and validity bits; RLE version 2 DIRECT runs with
+zigzag for the signed integer column, plain for string lengths; UTF-8 byte
+streams with a length stream for strings; a PRESENT stream only where a
+column has nulls; one stripe per file and no row indexes, with the section
+lengths accounted exactly; an empty batch reduces to header, schema-only
+footer and postscript. The reference solution does this in a few hundred
+lines of standard-library Python; the same file, taking its input and
+output directories as arguments, is delivered as /app/convert.py.\
+"""
+
+verification_explanation = """\
+Two graded artifacts. The archive: /app/out must hold exactly one .orc
+per input batch and nothing else; every file is read with the pinned
+Apache Arrow 25.0.1 ORC reader and compared value for value, nulls
+included, against the verifier's own copy of the batches (expectations
+computed at grading time, no stored goldens), then walked by the
+independent structural parser in /tests/walker.py, which enforces
+exactly the shape rules the contract states.
+
+The converter: /app/convert.py is executed three times, each as
+python3 -I on the system interpreter in a fresh unprivileged process
+(setpriv, no-new-privs, 300 s per run), with PATH set to a nonexistent
+directory and with the tests, the key, the verifier's venv (holding the
+ORC reader) and the submitted archive chmod-locked away from it. Every
+path an invocation sees - case directory, staged copy, scratch
+directory, IN_DIR and OUT_DIR - is a per-submission-random name, the
+grading root is execute-only, and the invocations run in an order drawn
+per submission. When an invocation exits, every sandbox-user process
+still running is killed before its output is read (kill(-1) sent as
+that user, which a detached or constantly re-forking process cannot
+outrun; a /proc sweep confirms none is left). Before the next
+invocation its files in /tmp, /var/tmp, /dev/shm, /dev/mqueue and
+/run/lock and all System V IPC objects are removed, and the finished
+grading directory is locked. The contract discloses all of this and
+states only these facts about the environment; it makes no promise
+about host commands (a converter that reads its input through /bin/sh
+by absolute path is accepted, as the contract allows).
+
+The three invocations: an empty input directory (must succeed with an
+empty output); a day of intermediate size drawn between 1 and 23
+batches; and a day at exactly the 24-batch maximum with one batch
+pinned per family - empty, single row, the 511/512/513 run boundaries,
+signed-64 extremes in both integer columns (nulls in note only), dense,
+mixed nulls with Unicode, the 4096-row maximum, nulls in latency_ms
+only, a character-class batch (nulls in breach only), and five batches
+that drive the bounds of the encodings themselves: all three nullable
+columns null in every row (identifiers empty in every row, so their
+string data is zero bytes); booleans packing into byte run-length runs
+of exactly 130 and of 131 bytes and a 129-byte literal stretch, with
+validity runs past 130 bytes; two 4096-row batches covering every
+width of the RLE v2 bit-width table, one width per 512-row block of
+each integer column; and integer run shapes (constant runs of 3, 10,
+11 and 600, arithmetic runs past 512 in both directions, varying
+steps, outliers, repeated signed-64 extremes). In the
+character-class batch every string column holds, in each of four
+spellings (unescaped; lowercase-hex \\uXXXX; uppercase-hex; every
+character escaped with mixed-case hex, keys included), values holding
+all 66 noncharacters, every UTF-8 encoding-length boundary, U+0000 and
+other controls, quote, backslash and solidus, unescaped U+0085, U+2028
+and U+2029, a leading U+FEFF, leading and trailing ASCII and Unicode
+whitespace, normalization-sensitive sequences, private-use and astral
+characters up to U+10FFFF, and JSON syntax as text; it also carries
+1024-character strings of four-byte characters (4096 UTF-8 bytes) in
+every string column, both integers written -0, and string values
+spelled like JSON literals. The test parses every line of that batch
+with a raw-token scanner and asserts each string column's exact
+spelling in each mode, so the per-column coverage is machine-checked on
+every run. The rotation from earlier rounds stays: key order,
+ensure-ascii escaping, whitespace layouts up to the eight-character run
+bound around every token and at line edges, the escaped solidus,
+\\u-escaped ASCII in keys and values in both hex cases, the \\b and \\f
+shorthands, surrogate pairs, strings at the 1024-character maximum in
+all three columns, and batch names across the whole stated grammar,
+all machine-asserted. The draws are seeded by a keyed digest of the
+submitted converter whose key is baked only into the verifier image:
+deterministic per submission, unpredictable and unsteerable from the
+environment.
+
+Proven both directions this round (each passes the previous verifier
+and fails this one, privilege drop on): a converter that replaces
+supplementary-plane characters in feed_id with '?', one that does the
+same to BMP noncharacters in note (the two reported cases), and in the
+same family one that damages plane-end noncharacters in event_id, one
+that damages C1 controls in feed_id, NFC normalization, trimming
+event_id, dropping a leading U+FEFF, splitting rows with
+str.splitlines(), regex pre-decoding of \\u00XX escapes, rejecting -0,
+rejecting mixed-case hex, a 3 x 1024-byte string buffer, and reading
+the string "null" as a null. From our own sweep of the encodings'
+bounds, same both-direction proof: a byte run-length writer that emits
+131-byte runs, a bit-width table with a wrong code for 28 bits, a
+converter that fails on a column null in every row, and converters
+that corrupt +1 arithmetic runs, runs of exactly ten equal integers,
+or repeats of the signed-64 maximum (what broken DELTA and
+SHORT_REPEAT encoders do). Harness side: a detached background
+process that keeps re-forking outlived the previous /proc sweep and
+ran on into later invocations; now none survives past the end of its
+own invocation. Every adversary from earlier rounds still
+fails (canonical-order and delimiter parsers, NUL truncation, first-key
+and literal-key matchers, path-label and sibling-directory tricks,
+whitespace-intolerant tokenizers, missing \\b, \\f, uppercase-hex or
+escaped-solidus handling, space-only line trimming, the U+10FFFF
+off-by-one, a bare-name host command).
+
+The walker decodes protobuf by wire rules and grades only decoded
+values: repeated numeric fields packed, unpacked or mixed; a singular
+field occurring more than once decodes to its last occurrence; unknown
+fields, well-formed groups and known field numbers with a mismatched
+wire type are skipped (proven accepted by rebuilt exploits; wrong
+decoded values and malformed groups proven rejected). Twenty-one
+single-deviation writer mutants (wrong bit order, wrong zigzag scope,
+wrong run headers, inverted or superfluous validity streams,
+version-one run-length encoding, claimed compression, a wrong format
+version, index strides, a schema type swap, a gap between sections,
+UTF-16 strings, character instead of byte string lengths, a wrong
+stripe row count, a wrong content length, a byte run one past the
+130-byte cap, a wrong bit-width code) each fail the suite, while an
+alternate legal construction with different run chunking, stream order
+and writer metadata passes, so the walker checks the contract rather
+than one writer's habits.\
+"""
+
+relevant_experience = """\
+I spent several years as product manager for Data Delivery at Institutional
+Shareholder Services, where I owned Snowflake-based data pipelines and our
+Feed Manager system end to end - file formats, delivery contracts, data
+quality and timeliness were my day job, and a malformed file landing in a
+client archive was exactly the kind of incident my team had to prevent. I
+also build software myself, so writing and checking a binary columnar
+format from its spec is familiar territory.\
+"""
+
+[verifier]
+timeout_sec = 1800
+network_mode = "no-network"
+environment_mode = "separate"
+
+[agent]
+timeout_sec = 5400
+network_mode = "no-network"
+
+[environment]
+network_mode = "public"
+build_timeout_sec = 900
+cpus = 2
+memory_mb = 8192
+storage_mb = 10240

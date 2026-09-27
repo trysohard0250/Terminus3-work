@@ -1,0 +1,333 @@
+{"event_id":"Efdf5a8914e","feed_id":"EMEA-F801","seq":496839278526970,"latency_ms":3625427,"breach":false,"note":""}
+{"event_id":"E30d2c2da0d","feed_id":"LATAM-F962","seq":792906563954118,"latency_ms":4265999,"breach":true,"note":"ok"}
+{"event_id":"Ead0864e0e4","feed_id":"APAC-F207","seq":212392751828718,"latency_ms":2973338,"breach":true,"note":"late upstream"}
+{"event_id":"Eae358022c5","feed_id":"AMER-F632","seq":270836645135405,"latency_ms":1055204,"breach":null,"note":"resent by vendor"}
+{"event_id":"E66408184c7","feed_id":"EMEA-F771","seq":820048348297306,"latency_ms":2131991,"breach":false,"note":"ué中文"}
+{"event_id":"E84a2845b35","feed_id":"EMEA-F236","seq":493087983638941,"latency_ms":6705663,"breach":false,"note":"éclair"}
+{"event_id":"Ee782e096ca","feed_id":"APAC-F969","seq":853530962221262,"latency_ms":85668,"breach":false,"note":"☃ snow day"}
+{"event_id":"E0a9209f8ee","feed_id":"EMEA-F434","seq":539906805457002,"latency_ms":5827950,"breach":null,"note":"backfill → done"}
+{"event_id":"E9e95cdacf4","feed_id":"LATAM-F250","seq":354162570838295,"latency_ms":9419447,"breach":false,"note":"📦 box"}
+{"event_id":"E645d13481f","feed_id":"AMER-F014","seq":846521142059978,"latency_ms":6958331,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Ea7c4579364","feed_id":"APAC-F874","seq":650215638665730,"latency_ms":null,"breach":false,"note":""}
+{"event_id":"E95f6d93ed0","feed_id":"APAC-F933","seq":642798675720537,"latency_ms":2441902,"breach":true,"note":"ok"}
+{"event_id":"Ea76ed11f92","feed_id":"APAC-F210","seq":118233552530868,"latency_ms":null,"breach":false,"note":"late upstream"}
+{"event_id":"Eb2bc2bc68f","feed_id":"AMER-F000","seq":196489151719296,"latency_ms":4687108,"breach":true,"note":"resent by vendor"}
+{"event_id":"E372f0f825f","feed_id":"LATAM-F408","seq":28212087793704,"latency_ms":7775047,"breach":false,"note":"ué中文"}
+{"event_id":"Eb78419ab09","feed_id":"AMER-F645","seq":287999285494572,"latency_ms":1578427,"breach":false,"note":"éclair"}
+{"event_id":"E2780b1cebf","feed_id":"EMEA-F226","seq":629709438437111,"latency_ms":2817696,"breach":false,"note":"☃ snow day"}
+{"event_id":"E6ccfe53e5e","feed_id":"LATAM-F304","seq":679405012006462,"latency_ms":4117881,"breach":true,"note":"backfill → done"}
+{"event_id":"E860831a968","feed_id":"LATAM-F547","seq":594851794921647,"latency_ms":2908010,"breach":true,"note":"📦 box"}
+{"event_id":"Ea6c67f8716","feed_id":"APAC-F869","seq":677496053845805,"latency_ms":8532603,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E0b4082ce39","feed_id":"AMER-F111","seq":916631530919859,"latency_ms":4599720,"breach":true,"note":""}
+{"event_id":"E4e5c72a5ae","feed_id":"LATAM-F250","seq":583291349801140,"latency_ms":null,"breach":true,"note":"ok"}
+{"event_id":"E461f42370f","feed_id":"LATAM-F487","seq":39732871794002,"latency_ms":null,"breach":false,"note":"late upstream"}
+{"event_id":"Ebd73671e83","feed_id":"EMEA-F033","seq":166643173618073,"latency_ms":null,"breach":true,"note":"resent by vendor"}
+{"event_id":"E606c19387d","feed_id":"LATAM-F007","seq":780869579248907,"latency_ms":2447528,"breach":true,"note":"ué中文"}
+{"event_id":"E47f5e220b4","feed_id":"APAC-F881","seq":982780244791401,"latency_ms":4890888,"breach":false,"note":"éclair"}
+{"event_id":"E512722648a","feed_id":"APAC-F493","seq":218775349986829,"latency_ms":1858014,"breach":false,"note":"☃ snow day"}
+{"event_id":"E2b3d4f71f8","feed_id":"APAC-F245","seq":686530628586005,"latency_ms":null,"breach":false,"note":"backfill → done"}
+{"event_id":"E0c2081d807","feed_id":"EMEA-F821","seq":325953740061298,"latency_ms":6501754,"breach":false,"note":"📦 box"}
+{"event_id":"Ecd7671de76","feed_id":"AMER-F602","seq":311770482932257,"latency_ms":7374588,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E086cb505a5","feed_id":"LATAM-F987","seq":947957590895628,"latency_ms":9283443,"breach":true,"note":""}
+{"event_id":"E6b12375395","feed_id":"EMEA-F137","seq":106634650090377,"latency_ms":1890275,"breach":false,"note":"ok"}
+{"event_id":"Ea2acd53c61","feed_id":"AMER-F977","seq":727577829317644,"latency_ms":null,"breach":true,"note":"late upstream"}
+{"event_id":"E6fed1aac14","feed_id":"AMER-F948","seq":536335988332138,"latency_ms":6993415,"breach":false,"note":"resent by vendor"}
+{"event_id":"Ec4c8b42918","feed_id":"AMER-F599","seq":654716543879170,"latency_ms":7284972,"breach":false,"note":"ué中文"}
+{"event_id":"E2ee481a2f6","feed_id":"APAC-F075","seq":781371546029919,"latency_ms":5620551,"breach":false,"note":"éclair"}
+{"event_id":"E1573fe1fa8","feed_id":"AMER-F224","seq":913793171205119,"latency_ms":81661,"breach":true,"note":"☃ snow day"}
+{"event_id":"Edacec3d3ee","feed_id":"AMER-F329","seq":639699896728734,"latency_ms":5863157,"breach":false,"note":"backfill → done"}
+{"event_id":"Efe717289ac","feed_id":"APAC-F333","seq":311100883057920,"latency_ms":2790639,"breach":true,"note":"📦 box"}
+{"event_id":"E327adc8f8e","feed_id":"LATAM-F861","seq":620164979603304,"latency_ms":5674268,"breach":true,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E0d141b9422","feed_id":"APAC-F868","seq":377875805231223,"latency_ms":9119723,"breach":false,"note":""}
+{"event_id":"E64a5872b92","feed_id":"LATAM-F883","seq":866014246322682,"latency_ms":null,"breach":true,"note":"ok"}
+{"event_id":"Ee2c437a824","feed_id":"APAC-F220","seq":305678282397531,"latency_ms":7677012,"breach":true,"note":"late upstream"}
+{"event_id":"E6138fa4f59","feed_id":"APAC-F696","seq":332673589033004,"latency_ms":3163284,"breach":false,"note":"resent by vendor"}
+{"event_id":"Ebf7b92c3aa","feed_id":"LATAM-F481","seq":810807650674714,"latency_ms":2246400,"breach":false,"note":"ué中文"}
+{"event_id":"Ed9bb2d6e78","feed_id":"APAC-F455","seq":125941792121074,"latency_ms":3736137,"breach":true,"note":"éclair"}
+{"event_id":"E1e6a05a343","feed_id":"APAC-F979","seq":121587292178994,"latency_ms":4780505,"breach":false,"note":"☃ snow day"}
+{"event_id":"E97d762b624","feed_id":"AMER-F961","seq":627670144220785,"latency_ms":2640289,"breach":false,"note":"backfill → done"}
+{"event_id":"E8232fda8bc","feed_id":"APAC-F210","seq":723587621218800,"latency_ms":1005085,"breach":true,"note":"📦 box"}
+{"event_id":"Ede87d72821","feed_id":"AMER-F800","seq":894443496343913,"latency_ms":2061234,"breach":true,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E48328f03ff","feed_id":"AMER-F819","seq":877802544203131,"latency_ms":3763285,"breach":true,"note":""}
+{"event_id":"E76ed72e576","feed_id":"AMER-F102","seq":278661673132928,"latency_ms":1228706,"breach":false,"note":"ok"}
+{"event_id":"Ec6223a958e","feed_id":"EMEA-F196","seq":580877049037481,"latency_ms":541024,"breach":true,"note":"late upstream"}
+{"event_id":"Ee12981c6fa","feed_id":"APAC-F086","seq":910546849375858,"latency_ms":7444030,"breach":false,"note":"resent by vendor"}
+{"event_id":"Ebe4a0b9872","feed_id":"LATAM-F953","seq":396473631499726,"latency_ms":4119319,"breach":false,"note":"ué中文"}
+{"event_id":"E80cff9bf46","feed_id":"AMER-F353","seq":35026135035551,"latency_ms":8112836,"breach":true,"note":"éclair"}
+{"event_id":"Ea150e26cbf","feed_id":"LATAM-F481","seq":181610490953438,"latency_ms":6486998,"breach":false,"note":"☃ snow day"}
+{"event_id":"E962f0f1553","feed_id":"APAC-F017","seq":14058290228419,"latency_ms":7398602,"breach":false,"note":"backfill → done"}
+{"event_id":"Ea0ca477ceb","feed_id":"LATAM-F909","seq":348930489582287,"latency_ms":6798983,"breach":false,"note":"📦 box"}
+{"event_id":"E77b73a087b","feed_id":"EMEA-F361","seq":733945164553508,"latency_ms":1721849,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E6405351367","feed_id":"EMEA-F921","seq":404259806570549,"latency_ms":null,"breach":false,"note":""}
+{"event_id":"Ef8c8bd7016","feed_id":"LATAM-F512","seq":235004632683749,"latency_ms":1828767,"breach":false,"note":"ok"}
+{"event_id":"Eaaa6dc33dc","feed_id":"EMEA-F467","seq":552093542150731,"latency_ms":null,"breach":true,"note":"late upstream"}
+{"event_id":"Ee271527476","feed_id":"EMEA-F404","seq":942813359984465,"latency_ms":9593889,"breach":null,"note":"resent by vendor"}
+{"event_id":"E365d35b294","feed_id":"AMER-F888","seq":316485420682099,"latency_ms":5699379,"breach":false,"note":"ué中文"}
+{"event_id":"Ef69914c5d6","feed_id":"LATAM-F619","seq":292592285181434,"latency_ms":9691691,"breach":true,"note":"éclair"}
+{"event_id":"E94c4bed1fc","feed_id":"APAC-F204","seq":556917221008390,"latency_ms":4972780,"breach":false,"note":"☃ snow day"}
+{"event_id":"E43ef7cb7e6","feed_id":"APAC-F724","seq":542318304749493,"latency_ms":6672692,"breach":false,"note":"backfill → done"}
+{"event_id":"Ed0ec6ab1fe","feed_id":"LATAM-F431","seq":96960915615212,"latency_ms":23656,"breach":true,"note":"📦 box"}
+{"event_id":"E2c42d321bb","feed_id":"LATAM-F213","seq":164604594031055,"latency_ms":1691267,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Ef4340ac546","feed_id":"AMER-F085","seq":176021475860225,"latency_ms":2966577,"breach":false,"note":""}
+{"event_id":"Eb59465276a","feed_id":"APAC-F839","seq":878415298071180,"latency_ms":6858079,"breach":true,"note":"ok"}
+{"event_id":"E9a3bbc71ca","feed_id":"LATAM-F605","seq":20212146791078,"latency_ms":7428857,"breach":false,"note":"late upstream"}
+{"event_id":"Ecb0a28548c","feed_id":"AMER-F022","seq":546693924639884,"latency_ms":4841851,"breach":true,"note":"resent by vendor"}
+{"event_id":"E7d51ef51c1","feed_id":"AMER-F444","seq":852662494580361,"latency_ms":null,"breach":true,"note":"ué中文"}
+{"event_id":"Ea5df757c61","feed_id":"AMER-F141","seq":972057092788117,"latency_ms":1430144,"breach":true,"note":"éclair"}
+{"event_id":"E828a2bebb7","feed_id":"APAC-F286","seq":43276082607779,"latency_ms":null,"breach":false,"note":"☃ snow day"}
+{"event_id":"Ec05c72c839","feed_id":"AMER-F850","seq":364096898140811,"latency_ms":323707,"breach":true,"note":"backfill → done"}
+{"event_id":"E804c97ec71","feed_id":"EMEA-F672","seq":352370209005379,"latency_ms":800414,"breach":true,"note":"📦 box"}
+{"event_id":"Eab57a871e1","feed_id":"AMER-F697","seq":582383220097593,"latency_ms":4676630,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E69cacf6e12","feed_id":"APAC-F501","seq":370500849049519,"latency_ms":2672595,"breach":false,"note":""}
+{"event_id":"E418ac871b4","feed_id":"LATAM-F078","seq":781835249205651,"latency_ms":9451554,"breach":false,"note":"ok"}
+{"event_id":"E40503d9ef9","feed_id":"AMER-F153","seq":532848934753568,"latency_ms":3566982,"breach":false,"note":"late upstream"}
+{"event_id":"E67a6b51d46","feed_id":"AMER-F932","seq":728206991786339,"latency_ms":6699885,"breach":false,"note":"resent by vendor"}
+{"event_id":"Ee0b4488499","feed_id":"APAC-F058","seq":604158588584360,"latency_ms":7112617,"breach":true,"note":"ué中文"}
+{"event_id":"E0b17dddee4","feed_id":"LATAM-F988","seq":764995453520304,"latency_ms":269189,"breach":false,"note":"éclair"}
+{"event_id":"E713d6fb00e","feed_id":"LATAM-F974","seq":818466740284121,"latency_ms":8172965,"breach":false,"note":"☃ snow day"}
+{"event_id":"Ee9d45a4b8d","feed_id":"AMER-F959","seq":909610584486444,"latency_ms":8004484,"breach":false,"note":"backfill → done"}
+{"event_id":"Ee92588d543","feed_id":"EMEA-F925","seq":745997271157574,"latency_ms":5063801,"breach":false,"note":"📦 box"}
+{"event_id":"Ef671e26fa5","feed_id":"LATAM-F975","seq":170839207578284,"latency_ms":4291459,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Ee4e7fb506e","feed_id":"LATAM-F627","seq":437444289216094,"latency_ms":5216240,"breach":false,"note":""}
+{"event_id":"E53a7b9afb6","feed_id":"EMEA-F632","seq":686671087337094,"latency_ms":1558286,"breach":null,"note":"ok"}
+{"event_id":"E9dee68c1cb","feed_id":"EMEA-F276","seq":341136601173744,"latency_ms":4816524,"breach":false,"note":"late upstream"}
+{"event_id":"E5799366da7","feed_id":"EMEA-F646","seq":620284402761012,"latency_ms":3714968,"breach":false,"note":"resent by vendor"}
+{"event_id":"Eebb94b6a7a","feed_id":"AMER-F716","seq":32383981018996,"latency_ms":6389158,"breach":false,"note":"ué中文"}
+{"event_id":"E90890f6ba3","feed_id":"AMER-F277","seq":951088474887965,"latency_ms":2640708,"breach":false,"note":"éclair"}
+{"event_id":"E61111ea059","feed_id":"EMEA-F396","seq":87995824280562,"latency_ms":null,"breach":true,"note":"☃ snow day"}
+{"event_id":"Ec91cb24a8f","feed_id":"AMER-F398","seq":864069525861185,"latency_ms":5790617,"breach":true,"note":"backfill → done"}
+{"event_id":"E8b79650b5a","feed_id":"EMEA-F533","seq":105250578988862,"latency_ms":5627748,"breach":false,"note":"📦 box"}
+{"event_id":"E2b270e6fd0","feed_id":"AMER-F254","seq":934370863858103,"latency_ms":3348084,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E3d1938b2ed","feed_id":"EMEA-F831","seq":440539538177453,"latency_ms":4960006,"breach":false,"note":""}
+{"event_id":"E365d4e0b84","feed_id":"EMEA-F552","seq":249268295519868,"latency_ms":5596408,"breach":true,"note":"ok"}
+{"event_id":"E515573fe0c","feed_id":"APAC-F806","seq":471946179777248,"latency_ms":9348713,"breach":null,"note":"late upstream"}
+{"event_id":"E494a9eb56c","feed_id":"APAC-F802","seq":649687453484985,"latency_ms":2199062,"breach":true,"note":"resent by vendor"}
+{"event_id":"Ec90a554862","feed_id":"LATAM-F858","seq":339953279195802,"latency_ms":7260217,"breach":true,"note":"ué中文"}
+{"event_id":"Eb673b03055","feed_id":"AMER-F938","seq":792750489473032,"latency_ms":9137263,"breach":true,"note":"éclair"}
+{"event_id":"E46b7d072e9","feed_id":"EMEA-F772","seq":979603346153454,"latency_ms":null,"breach":true,"note":"☃ snow day"}
+{"event_id":"E8e93ecb7c3","feed_id":"AMER-F605","seq":39674016953185,"latency_ms":9893370,"breach":false,"note":"backfill → done"}
+{"event_id":"E5452c955ac","feed_id":"APAC-F621","seq":35973728167357,"latency_ms":3572069,"breach":false,"note":"📦 box"}
+{"event_id":"E436d6718f4","feed_id":"AMER-F970","seq":42866597270799,"latency_ms":7683664,"breach":null,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Ef23018702c","feed_id":"LATAM-F268","seq":224423620577103,"latency_ms":6466942,"breach":false,"note":""}
+{"event_id":"E57127e4eec","feed_id":"APAC-F430","seq":353056686957211,"latency_ms":7478660,"breach":false,"note":"ok"}
+{"event_id":"E700516967d","feed_id":"AMER-F310","seq":78230846820319,"latency_ms":7049459,"breach":null,"note":"late upstream"}
+{"event_id":"E1a32604be7","feed_id":"EMEA-F834","seq":794867948576657,"latency_ms":7830979,"breach":true,"note":"resent by vendor"}
+{"event_id":"E2efcb6e67a","feed_id":"EMEA-F854","seq":58532393222936,"latency_ms":1222940,"breach":false,"note":"ué中文"}
+{"event_id":"E620fc4c3b9","feed_id":"LATAM-F193","seq":879573523390923,"latency_ms":5239138,"breach":true,"note":"éclair"}
+{"event_id":"E25ef0359df","feed_id":"APAC-F186","seq":269139969898375,"latency_ms":4988485,"breach":false,"note":"☃ snow day"}
+{"event_id":"E3b9178408f","feed_id":"EMEA-F307","seq":892885108402088,"latency_ms":1014257,"breach":true,"note":"backfill → done"}
+{"event_id":"Efb0f9b0331","feed_id":"AMER-F740","seq":115583841028216,"latency_ms":8768652,"breach":false,"note":"📦 box"}
+{"event_id":"E96be92b515","feed_id":"APAC-F671","seq":687729128218795,"latency_ms":7219904,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Ed690bf0e4d","feed_id":"AMER-F137","seq":125907098380455,"latency_ms":719251,"breach":false,"note":""}
+{"event_id":"Ebb1bf42beb","feed_id":"APAC-F222","seq":969042409373983,"latency_ms":1370022,"breach":false,"note":"ok"}
+{"event_id":"Ec949e43699","feed_id":"EMEA-F215","seq":37942298033930,"latency_ms":4268557,"breach":false,"note":"late upstream"}
+{"event_id":"Eb72c466eac","feed_id":"LATAM-F836","seq":479177042853826,"latency_ms":1617275,"breach":true,"note":"resent by vendor"}
+{"event_id":"E06f6145606","feed_id":"LATAM-F711","seq":67590500012193,"latency_ms":3317022,"breach":true,"note":"ué中文"}
+{"event_id":"Ecacc05f0fc","feed_id":"AMER-F870","seq":641368829486374,"latency_ms":1774998,"breach":false,"note":"éclair"}
+{"event_id":"E0b64129c37","feed_id":"APAC-F168","seq":924703541305122,"latency_ms":7709581,"breach":null,"note":"☃ snow day"}
+{"event_id":"Ef681a06f5e","feed_id":"AMER-F306","seq":396632652373569,"latency_ms":2565335,"breach":false,"note":"backfill → done"}
+{"event_id":"E5479c80278","feed_id":"APAC-F122","seq":537418664924970,"latency_ms":null,"breach":false,"note":"📦 box"}
+{"event_id":"Ef4e1eb7939","feed_id":"APAC-F189","seq":527193387893096,"latency_ms":null,"breach":true,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E13b3ed5e62","feed_id":"EMEA-F389","seq":447005281103462,"latency_ms":807796,"breach":true,"note":""}
+{"event_id":"E536347a2e6","feed_id":"APAC-F575","seq":382603315342614,"latency_ms":null,"breach":true,"note":"ok"}
+{"event_id":"E7cddd22e09","feed_id":"EMEA-F619","seq":378883065796355,"latency_ms":9348411,"breach":false,"note":"late upstream"}
+{"event_id":"E11fbdf1e1c","feed_id":"APAC-F525","seq":314636290665751,"latency_ms":9410283,"breach":true,"note":"resent by vendor"}
+{"event_id":"E64ec63a169","feed_id":"EMEA-F607","seq":820605324783913,"latency_ms":7304694,"breach":false,"note":"ué中文"}
+{"event_id":"Ed91a250030","feed_id":"AMER-F294","seq":243639054193561,"latency_ms":null,"breach":false,"note":"éclair"}
+{"event_id":"E85958cc973","feed_id":"AMER-F415","seq":584456318961511,"latency_ms":9411595,"breach":false,"note":"☃ snow day"}
+{"event_id":"Ec046fef690","feed_id":"AMER-F705","seq":910966089660208,"latency_ms":1006853,"breach":false,"note":"backfill → done"}
+{"event_id":"E55c9bbef66","feed_id":"LATAM-F987","seq":673603430056288,"latency_ms":8215141,"breach":null,"note":"📦 box"}
+{"event_id":"E0bef1a5f8f","feed_id":"EMEA-F052","seq":479684120247330,"latency_ms":9532438,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E7a2823e34a","feed_id":"AMER-F882","seq":533905934454737,"latency_ms":7486650,"breach":false,"note":""}
+{"event_id":"E1d14d8ee95","feed_id":"AMER-F815","seq":103942740279664,"latency_ms":6243832,"breach":true,"note":"ok"}
+{"event_id":"E4b4bf2c650","feed_id":"APAC-F760","seq":394240438348016,"latency_ms":3285764,"breach":true,"note":"late upstream"}
+{"event_id":"E5dacca6174","feed_id":"EMEA-F654","seq":610559079703222,"latency_ms":5035047,"breach":false,"note":"resent by vendor"}
+{"event_id":"E2bdb94f577","feed_id":"AMER-F227","seq":42453803886301,"latency_ms":8449475,"breach":false,"note":"ué中文"}
+{"event_id":"E3a9cb82b61","feed_id":"AMER-F618","seq":547671036500013,"latency_ms":7510986,"breach":false,"note":"éclair"}
+{"event_id":"E8d4c7fa76f","feed_id":"LATAM-F429","seq":275923845475695,"latency_ms":3981468,"breach":true,"note":"☃ snow day"}
+{"event_id":"E16bd712cb9","feed_id":"LATAM-F540","seq":821950750711349,"latency_ms":9810157,"breach":false,"note":"backfill → done"}
+{"event_id":"E9a008302fa","feed_id":"EMEA-F645","seq":966754917401139,"latency_ms":null,"breach":false,"note":"📦 box"}
+{"event_id":"E7df5d4baa2","feed_id":"LATAM-F753","seq":407578190516788,"latency_ms":2361680,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E861f084998","feed_id":"AMER-F499","seq":263428511670044,"latency_ms":4243357,"breach":false,"note":""}
+{"event_id":"E499f102eaa","feed_id":"LATAM-F845","seq":105964302025557,"latency_ms":2759497,"breach":false,"note":"ok"}
+{"event_id":"Ece0f21f442","feed_id":"APAC-F727","seq":640671189639020,"latency_ms":3699716,"breach":null,"note":"late upstream"}
+{"event_id":"Ebeebfd824b","feed_id":"APAC-F844","seq":522529346142407,"latency_ms":183101,"breach":false,"note":"resent by vendor"}
+{"event_id":"E006cb66186","feed_id":"AMER-F130","seq":779752882421500,"latency_ms":8960539,"breach":true,"note":"ué中文"}
+{"event_id":"E3d0e8e9e74","feed_id":"EMEA-F197","seq":468296710363232,"latency_ms":null,"breach":null,"note":"éclair"}
+{"event_id":"E67db034f70","feed_id":"LATAM-F214","seq":436374524693239,"latency_ms":5993493,"breach":true,"note":"☃ snow day"}
+{"event_id":"Ec89cdb56e1","feed_id":"AMER-F251","seq":796434272229280,"latency_ms":null,"breach":false,"note":"backfill → done"}
+{"event_id":"E1882efae05","feed_id":"AMER-F265","seq":991154443819762,"latency_ms":9223180,"breach":true,"note":"📦 box"}
+{"event_id":"Edffa931585","feed_id":"APAC-F805","seq":684142390694706,"latency_ms":1045499,"breach":true,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E0cb88a2fa2","feed_id":"APAC-F336","seq":197813085979933,"latency_ms":4517101,"breach":null,"note":""}
+{"event_id":"E6f686fb94f","feed_id":"EMEA-F961","seq":970751223874022,"latency_ms":9354700,"breach":false,"note":"ok"}
+{"event_id":"E8aceddcce4","feed_id":"LATAM-F970","seq":983787340764661,"latency_ms":8881704,"breach":false,"note":"late upstream"}
+{"event_id":"E7cb895d3d7","feed_id":"EMEA-F935","seq":62516318493789,"latency_ms":8237726,"breach":true,"note":"resent by vendor"}
+{"event_id":"E041f7c5e02","feed_id":"AMER-F173","seq":111181907061062,"latency_ms":5950556,"breach":null,"note":"ué中文"}
+{"event_id":"E10c64f8ee6","feed_id":"APAC-F115","seq":501185586719829,"latency_ms":2657765,"breach":false,"note":"éclair"}
+{"event_id":"E5245e29519","feed_id":"EMEA-F048","seq":985759537959417,"latency_ms":8158086,"breach":false,"note":"☃ snow day"}
+{"event_id":"E83342cdced","feed_id":"APAC-F751","seq":938500988210069,"latency_ms":6901522,"breach":false,"note":"backfill → done"}
+{"event_id":"E80471a6a31","feed_id":"APAC-F901","seq":232551016827509,"latency_ms":7511298,"breach":true,"note":"📦 box"}
+{"event_id":"E946bdf8e38","feed_id":"LATAM-F051","seq":466877538926744,"latency_ms":6437116,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Efa7c8514a0","feed_id":"APAC-F472","seq":780116385412268,"latency_ms":6679802,"breach":false,"note":""}
+{"event_id":"E047f027fc6","feed_id":"EMEA-F433","seq":40280612121357,"latency_ms":1684365,"breach":true,"note":"ok"}
+{"event_id":"Efe09b8644f","feed_id":"LATAM-F073","seq":811446877332626,"latency_ms":4371122,"breach":null,"note":"late upstream"}
+{"event_id":"E6657b56bad","feed_id":"EMEA-F079","seq":939738101872673,"latency_ms":1124230,"breach":false,"note":"resent by vendor"}
+{"event_id":"Ec38b7da8db","feed_id":"LATAM-F237","seq":892529960826479,"latency_ms":3391470,"breach":false,"note":"ué中文"}
+{"event_id":"E675171b8ce","feed_id":"LATAM-F900","seq":675422500877079,"latency_ms":2038519,"breach":null,"note":"éclair"}
+{"event_id":"E9373dfb94f","feed_id":"AMER-F158","seq":874754747026929,"latency_ms":1158279,"breach":false,"note":"☃ snow day"}
+{"event_id":"E7356fc359c","feed_id":"AMER-F962","seq":154312426631026,"latency_ms":3452404,"breach":false,"note":"backfill → done"}
+{"event_id":"E1f0e7a99ae","feed_id":"EMEA-F144","seq":75465966154911,"latency_ms":9639589,"breach":false,"note":"📦 box"}
+{"event_id":"E80a7d566b6","feed_id":"AMER-F769","seq":327128161823289,"latency_ms":9710240,"breach":true,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E2132716694","feed_id":"EMEA-F830","seq":443448738183561,"latency_ms":2386981,"breach":false,"note":""}
+{"event_id":"Ef146d3d82b","feed_id":"APAC-F683","seq":831960131983108,"latency_ms":2479169,"breach":true,"note":"ok"}
+{"event_id":"E002c45ec10","feed_id":"AMER-F024","seq":506972102566370,"latency_ms":7695468,"breach":null,"note":"late upstream"}
+{"event_id":"Ea74c083394","feed_id":"LATAM-F910","seq":594785494153427,"latency_ms":9714656,"breach":false,"note":"resent by vendor"}
+{"event_id":"E21ff8d5f68","feed_id":"APAC-F729","seq":320475559365248,"latency_ms":788116,"breach":null,"note":"ué中文"}
+{"event_id":"Ed892058772","feed_id":"APAC-F416","seq":769966594028874,"latency_ms":6838402,"breach":null,"note":"éclair"}
+{"event_id":"Eac3773d451","feed_id":"LATAM-F508","seq":840522015683898,"latency_ms":null,"breach":false,"note":"☃ snow day"}
+{"event_id":"Ee205696499","feed_id":"AMER-F735","seq":548044198858946,"latency_ms":7161529,"breach":false,"note":"backfill → done"}
+{"event_id":"E92a8359f76","feed_id":"APAC-F601","seq":556736610259513,"latency_ms":2071565,"breach":true,"note":"📦 box"}
+{"event_id":"E88008a712e","feed_id":"APAC-F614","seq":194013554761941,"latency_ms":4645169,"breach":true,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Eac78e1f4ea","feed_id":"EMEA-F765","seq":833388345659112,"latency_ms":9609583,"breach":false,"note":""}
+{"event_id":"E05df233521","feed_id":"AMER-F149","seq":428771295205502,"latency_ms":6006544,"breach":true,"note":"ok"}
+{"event_id":"Ec46d46c675","feed_id":"APAC-F477","seq":961825179710628,"latency_ms":9201,"breach":true,"note":"late upstream"}
+{"event_id":"Efc1d438f53","feed_id":"EMEA-F321","seq":639952411784926,"latency_ms":5000711,"breach":true,"note":"resent by vendor"}
+{"event_id":"E0a76785ce6","feed_id":"AMER-F709","seq":847223000598665,"latency_ms":6447486,"breach":false,"note":"ué中文"}
+{"event_id":"E318a23c3af","feed_id":"AMER-F647","seq":270568099862135,"latency_ms":2477302,"breach":false,"note":"éclair"}
+{"event_id":"Ee6abbc1c6d","feed_id":"EMEA-F542","seq":444898877097614,"latency_ms":7861562,"breach":false,"note":"☃ snow day"}
+{"event_id":"E8cab7998c5","feed_id":"LATAM-F552","seq":214252450107971,"latency_ms":7149426,"breach":false,"note":"backfill → done"}
+{"event_id":"E8e2285e858","feed_id":"APAC-F156","seq":915064732755091,"latency_ms":9733835,"breach":true,"note":"📦 box"}
+{"event_id":"E762d0fce08","feed_id":"EMEA-F360","seq":870565734984257,"latency_ms":8307632,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Edfe71d77c8","feed_id":"EMEA-F013","seq":41584110559874,"latency_ms":9071232,"breach":false,"note":""}
+{"event_id":"Eb4e32b2df2","feed_id":"EMEA-F834","seq":250482367241083,"latency_ms":1142544,"breach":null,"note":"ok"}
+{"event_id":"Eea3d40f10b","feed_id":"AMER-F698","seq":946813776909627,"latency_ms":6741692,"breach":false,"note":"late upstream"}
+{"event_id":"E243f825d7c","feed_id":"APAC-F775","seq":863234809535987,"latency_ms":7775450,"breach":null,"note":"resent by vendor"}
+{"event_id":"E9ad3cbfcba","feed_id":"LATAM-F871","seq":521474967700750,"latency_ms":7946893,"breach":null,"note":"ué中文"}
+{"event_id":"Ef904b37b62","feed_id":"LATAM-F021","seq":15449037478934,"latency_ms":1108904,"breach":false,"note":"éclair"}
+{"event_id":"E7f1b6c93db","feed_id":"APAC-F922","seq":477841969317507,"latency_ms":null,"breach":true,"note":"☃ snow day"}
+{"event_id":"E5fb64dbfc7","feed_id":"LATAM-F480","seq":434570316858068,"latency_ms":4107178,"breach":null,"note":"backfill → done"}
+{"event_id":"E68031185e6","feed_id":"AMER-F374","seq":711750217120355,"latency_ms":2871892,"breach":false,"note":"📦 box"}
+{"event_id":"E4cb4182d4b","feed_id":"AMER-F053","seq":799519879991959,"latency_ms":530748,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Ec7af93b8af","feed_id":"APAC-F997","seq":457857672159569,"latency_ms":6620706,"breach":null,"note":""}
+{"event_id":"Eb4673d1036","feed_id":"AMER-F931","seq":136523745131961,"latency_ms":null,"breach":true,"note":"ok"}
+{"event_id":"E6fb6644938","feed_id":"EMEA-F822","seq":298258436742066,"latency_ms":9624683,"breach":false,"note":"late upstream"}
+{"event_id":"E4e5ba216d4","feed_id":"EMEA-F033","seq":729894216556625,"latency_ms":8037987,"breach":false,"note":"resent by vendor"}
+{"event_id":"Eeac252a137","feed_id":"AMER-F502","seq":459530048422019,"latency_ms":4348883,"breach":false,"note":"ué中文"}
+{"event_id":"E5a13c55e8d","feed_id":"LATAM-F859","seq":223867732088546,"latency_ms":6351936,"breach":true,"note":"éclair"}
+{"event_id":"E42793fe217","feed_id":"APAC-F441","seq":70474153632953,"latency_ms":null,"breach":false,"note":"☃ snow day"}
+{"event_id":"Ef45bc199d6","feed_id":"APAC-F012","seq":707659186157916,"latency_ms":4467840,"breach":false,"note":"backfill → done"}
+{"event_id":"E636a22d86e","feed_id":"APAC-F808","seq":496095180016158,"latency_ms":9008362,"breach":true,"note":"📦 box"}
+{"event_id":"E2812aeb06f","feed_id":"AMER-F607","seq":189097003276137,"latency_ms":7287365,"breach":true,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E5f01fdb689","feed_id":"AMER-F804","seq":234637122212599,"latency_ms":6786934,"breach":false,"note":""}
+{"event_id":"E0f026e8ce9","feed_id":"EMEA-F964","seq":644801655272835,"latency_ms":8898961,"breach":true,"note":"ok"}
+{"event_id":"E4fc47644f8","feed_id":"EMEA-F331","seq":541017149357285,"latency_ms":7338677,"breach":false,"note":"late upstream"}
+{"event_id":"Ee1de5c305e","feed_id":"AMER-F994","seq":313100665655732,"latency_ms":8741206,"breach":true,"note":"resent by vendor"}
+{"event_id":"E09eaeaacd0","feed_id":"LATAM-F429","seq":942753823750737,"latency_ms":1299459,"breach":false,"note":"ué中文"}
+{"event_id":"E8b861bc3bf","feed_id":"AMER-F171","seq":920006245394508,"latency_ms":4666526,"breach":null,"note":"éclair"}
+{"event_id":"Ea9d654338e","feed_id":"EMEA-F540","seq":507547070745876,"latency_ms":2359386,"breach":false,"note":"☃ snow day"}
+{"event_id":"E33c18e9ae0","feed_id":"LATAM-F163","seq":37863353030690,"latency_ms":1830979,"breach":false,"note":"backfill → done"}
+{"event_id":"Ec6565b707e","feed_id":"LATAM-F307","seq":732084015099414,"latency_ms":8368794,"breach":false,"note":"📦 box"}
+{"event_id":"E9542f97292","feed_id":"LATAM-F944","seq":429918294918574,"latency_ms":7004340,"breach":null,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Ecaffa431b6","feed_id":"LATAM-F480","seq":857559190590349,"latency_ms":7327231,"breach":true,"note":""}
+{"event_id":"E0aa39a48e5","feed_id":"LATAM-F276","seq":823877429088292,"latency_ms":null,"breach":false,"note":"ok"}
+{"event_id":"Edaf4708091","feed_id":"AMER-F791","seq":477379482992704,"latency_ms":4239119,"breach":true,"note":"late upstream"}
+{"event_id":"E0d50510915","feed_id":"LATAM-F020","seq":991146386739525,"latency_ms":null,"breach":true,"note":"resent by vendor"}
+{"event_id":"E700ea2e595","feed_id":"EMEA-F211","seq":637804098775998,"latency_ms":1621194,"breach":true,"note":"ué中文"}
+{"event_id":"Ecbee471b33","feed_id":"LATAM-F124","seq":414553927103827,"latency_ms":4651908,"breach":null,"note":"éclair"}
+{"event_id":"E33d6000aa8","feed_id":"AMER-F443","seq":968314054726593,"latency_ms":8469872,"breach":true,"note":"☃ snow day"}
+{"event_id":"E28fe32a08c","feed_id":"EMEA-F643","seq":280315804049209,"latency_ms":778058,"breach":true,"note":"backfill → done"}
+{"event_id":"Ef66e8965d8","feed_id":"LATAM-F094","seq":386378084229914,"latency_ms":5293109,"breach":false,"note":"📦 box"}
+{"event_id":"E5137878f8b","feed_id":"AMER-F007","seq":644009772769684,"latency_ms":8298808,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Eb9544e3afa","feed_id":"APAC-F396","seq":985743323808982,"latency_ms":6048253,"breach":false,"note":""}
+{"event_id":"E969f62f259","feed_id":"LATAM-F845","seq":860986347566022,"latency_ms":6360552,"breach":null,"note":"ok"}
+{"event_id":"Eebcb94a1bb","feed_id":"EMEA-F614","seq":913274022547027,"latency_ms":3827179,"breach":false,"note":"late upstream"}
+{"event_id":"E4c9601c216","feed_id":"APAC-F535","seq":483072607463962,"latency_ms":5402133,"breach":null,"note":"resent by vendor"}
+{"event_id":"E816ddb4180","feed_id":"APAC-F014","seq":201008330873321,"latency_ms":null,"breach":false,"note":"ué中文"}
+{"event_id":"E8dca790f5b","feed_id":"EMEA-F477","seq":607725742158118,"latency_ms":5782087,"breach":null,"note":"éclair"}
+{"event_id":"Ea6f2bbf306","feed_id":"AMER-F837","seq":590206882988222,"latency_ms":9576078,"breach":false,"note":"☃ snow day"}
+{"event_id":"Ea89032ca3b","feed_id":"EMEA-F482","seq":867723072331327,"latency_ms":null,"breach":false,"note":"backfill → done"}
+{"event_id":"E5e765793ac","feed_id":"EMEA-F629","seq":235073067600133,"latency_ms":3392640,"breach":false,"note":"📦 box"}
+{"event_id":"E48cd71d177","feed_id":"EMEA-F633","seq":95436799753781,"latency_ms":8874262,"breach":true,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Ebaae45f4ca","feed_id":"LATAM-F448","seq":896422154336573,"latency_ms":9484774,"breach":true,"note":""}
+{"event_id":"Ea382313d25","feed_id":"LATAM-F026","seq":747320189306556,"latency_ms":64744,"breach":false,"note":"ok"}
+{"event_id":"E0cccc49728","feed_id":"AMER-F200","seq":64165324253466,"latency_ms":3854688,"breach":false,"note":"late upstream"}
+{"event_id":"Eb5bc728dbc","feed_id":"EMEA-F071","seq":934069064159981,"latency_ms":3435682,"breach":false,"note":"resent by vendor"}
+{"event_id":"E92fc5fd79e","feed_id":"APAC-F053","seq":770719097717131,"latency_ms":null,"breach":false,"note":"ué中文"}
+{"event_id":"E405bc336a4","feed_id":"EMEA-F292","seq":537905775785875,"latency_ms":2689152,"breach":false,"note":"éclair"}
+{"event_id":"E8173505486","feed_id":"APAC-F814","seq":585910696361878,"latency_ms":9103026,"breach":true,"note":"☃ snow day"}
+{"event_id":"E201a3dd05c","feed_id":"APAC-F775","seq":198208318918776,"latency_ms":53372,"breach":false,"note":"backfill → done"}
+{"event_id":"Ef4a4506cac","feed_id":"LATAM-F179","seq":786293254903342,"latency_ms":2427539,"breach":false,"note":"📦 box"}
+{"event_id":"E1c8cf4e3d3","feed_id":"APAC-F517","seq":66589002480590,"latency_ms":8393312,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E04e82e8540","feed_id":"EMEA-F641","seq":16587700956467,"latency_ms":4355551,"breach":null,"note":""}
+{"event_id":"E111f838894","feed_id":"EMEA-F638","seq":241382060472919,"latency_ms":7493336,"breach":false,"note":"ok"}
+{"event_id":"E500a16b0f4","feed_id":"LATAM-F558","seq":932420352785164,"latency_ms":7387363,"breach":false,"note":"late upstream"}
+{"event_id":"Ecd98ba72d3","feed_id":"APAC-F395","seq":676484192121949,"latency_ms":209247,"breach":false,"note":"resent by vendor"}
+{"event_id":"Eaf966e8ab8","feed_id":"LATAM-F070","seq":201492750439229,"latency_ms":7665839,"breach":true,"note":"ué中文"}
+{"event_id":"Ef05a336080","feed_id":"EMEA-F211","seq":703745771592335,"latency_ms":7443715,"breach":false,"note":"éclair"}
+{"event_id":"Edb298c7492","feed_id":"AMER-F257","seq":182169225600995,"latency_ms":5905039,"breach":false,"note":"☃ snow day"}
+{"event_id":"E3d3bf063b2","feed_id":"EMEA-F402","seq":958073259327541,"latency_ms":2473887,"breach":false,"note":"backfill → done"}
+{"event_id":"E746062f9d1","feed_id":"EMEA-F298","seq":81490644706809,"latency_ms":4706996,"breach":true,"note":"📦 box"}
+{"event_id":"E600a7260ea","feed_id":"EMEA-F954","seq":381506657505818,"latency_ms":2508569,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E8f03cea0f1","feed_id":"EMEA-F502","seq":866190225319914,"latency_ms":7904433,"breach":false,"note":""}
+{"event_id":"Ef1a182f487","feed_id":"LATAM-F062","seq":652248838424581,"latency_ms":3708923,"breach":null,"note":"ok"}
+{"event_id":"E2959507d58","feed_id":"EMEA-F828","seq":501835564031902,"latency_ms":8998060,"breach":false,"note":"late upstream"}
+{"event_id":"Ed7d0cbd6ab","feed_id":"LATAM-F639","seq":598199861317610,"latency_ms":5870209,"breach":true,"note":"resent by vendor"}
+{"event_id":"Ec907af03be","feed_id":"EMEA-F604","seq":112517189072066,"latency_ms":2991793,"breach":false,"note":"ué中文"}
+{"event_id":"E9ee9c33501","feed_id":"EMEA-F875","seq":482418979234486,"latency_ms":null,"breach":false,"note":"éclair"}
+{"event_id":"E96a8bfd046","feed_id":"AMER-F980","seq":421361472022816,"latency_ms":6177696,"breach":true,"note":"☃ snow day"}
+{"event_id":"E3d297cfca3","feed_id":"AMER-F031","seq":784717013970889,"latency_ms":2963232,"breach":false,"note":"backfill → done"}
+{"event_id":"Ef9e0363d9e","feed_id":"EMEA-F278","seq":337304799685860,"latency_ms":2150235,"breach":false,"note":"📦 box"}
+{"event_id":"Ed1aaedd16b","feed_id":"APAC-F217","seq":681663361239605,"latency_ms":552115,"breach":true,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"Eb98387d317","feed_id":"LATAM-F262","seq":662814626945300,"latency_ms":9163772,"breach":false,"note":""}
+{"event_id":"Ec8497b14d4","feed_id":"EMEA-F351","seq":50465642212299,"latency_ms":1790234,"breach":false,"note":"ok"}
+{"event_id":"E804446fa9b","feed_id":"AMER-F324","seq":223815226789104,"latency_ms":5745163,"breach":false,"note":"late upstream"}
+{"event_id":"E1f44861a66","feed_id":"EMEA-F161","seq":432261800447266,"latency_ms":3963271,"breach":null,"note":"resent by vendor"}
+{"event_id":"Ef44859907c","feed_id":"APAC-F002","seq":985201543437711,"latency_ms":504755,"breach":true,"note":"ué中文"}
+{"event_id":"Ee773c2d9bc","feed_id":"AMER-F516","seq":625124426557637,"latency_ms":null,"breach":false,"note":"éclair"}
+{"event_id":"E3b8a3a1638","feed_id":"EMEA-F372","seq":318268208777093,"latency_ms":6765394,"breach":null,"note":"☃ snow day"}
+{"event_id":"E88b3a18553","feed_id":"APAC-F640","seq":182744242662217,"latency_ms":788285,"breach":true,"note":"backfill → done"}
+{"event_id":"E8573ffd17c","feed_id":"LATAM-F694","seq":13804149057194,"latency_ms":7547806,"breach":null,"note":"📦 box"}
+{"event_id":"Eedbef1e79f","feed_id":"EMEA-F723","seq":958542386275009,"latency_ms":3747871,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E350655ef4f","feed_id":"AMER-F984","seq":183176764824135,"latency_ms":1285022,"breach":false,"note":""}
+{"event_id":"E3e81996828","feed_id":"AMER-F868","seq":563745097644742,"latency_ms":3042603,"breach":false,"note":"ok"}
+{"event_id":"Ead29fbe131","feed_id":"AMER-F606","seq":92426483389926,"latency_ms":2855068,"breach":true,"note":"late upstream"}
+{"event_id":"Ef3fd2ed415","feed_id":"AMER-F876","seq":393903725763293,"latency_ms":null,"breach":false,"note":"resent by vendor"}
+{"event_id":"E514eb160c9","feed_id":"EMEA-F225","seq":698142734717934,"latency_ms":7427265,"breach":true,"note":"ué中文"}
+{"event_id":"E5a8850f967","feed_id":"EMEA-F953","seq":114825019044584,"latency_ms":null,"breach":false,"note":"éclair"}
+{"event_id":"E01b2042c94","feed_id":"EMEA-F013","seq":653485234853087,"latency_ms":9368932,"breach":true,"note":"☃ snow day"}
+{"event_id":"E0a7941f610","feed_id":"LATAM-F366","seq":90230916232422,"latency_ms":9572674,"breach":null,"note":"backfill → done"}
+{"event_id":"E004b0ce934","feed_id":"AMER-F347","seq":314009816211086,"latency_ms":6833510,"breach":false,"note":"📦 box"}
+{"event_id":"E20e6a25d75","feed_id":"APAC-F162","seq":160738733498136,"latency_ms":9949183,"breach":null,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E22a8268a5f","feed_id":"AMER-F641","seq":471756220718775,"latency_ms":null,"breach":true,"note":""}
+{"event_id":"E585b030244","feed_id":"AMER-F278","seq":587831791553259,"latency_ms":4394076,"breach":false,"note":"ok"}
+{"event_id":"E3259a0b04c","feed_id":"EMEA-F227","seq":532423031398656,"latency_ms":8102076,"breach":false,"note":"late upstream"}
+{"event_id":"E93d3d5665f","feed_id":"EMEA-F062","seq":334346026914950,"latency_ms":null,"breach":null,"note":"resent by vendor"}
+{"event_id":"E7ab8539118","feed_id":"LATAM-F816","seq":338793572017730,"latency_ms":9424270,"breach":false,"note":"ué中文"}
+{"event_id":"E5eaf8bfb7a","feed_id":"AMER-F645","seq":894019604277826,"latency_ms":47898,"breach":false,"note":"éclair"}
+{"event_id":"Ed75e41d0c0","feed_id":"AMER-F250","seq":446744369995776,"latency_ms":3375404,"breach":true,"note":"☃ snow day"}
+{"event_id":"Ea893d5e3c9","feed_id":"LATAM-F959","seq":462370301391455,"latency_ms":714466,"breach":false,"note":"backfill → done"}
+{"event_id":"Eac1f68d263","feed_id":"AMER-F721","seq":66439008554942,"latency_ms":5908329,"breach":false,"note":"📦 box"}
+{"event_id":"E07ca347ca0","feed_id":"APAC-F205","seq":627135328554148,"latency_ms":null,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E817604bb07","feed_id":"AMER-F667","seq":536373594588922,"latency_ms":8464168,"breach":null,"note":""}
+{"event_id":"E14eb60ae82","feed_id":"AMER-F942","seq":842597823354410,"latency_ms":6188418,"breach":true,"note":"ok"}
+{"event_id":"E8c55f05a3d","feed_id":"APAC-F692","seq":658177218920433,"latency_ms":7335711,"breach":false,"note":"late upstream"}
+{"event_id":"Ed37bc22372","feed_id":"APAC-F157","seq":712230695663821,"latency_ms":4775023,"breach":false,"note":"resent by vendor"}
+{"event_id":"Eb3a9482e25","feed_id":"EMEA-F850","seq":632388602404956,"latency_ms":828826,"breach":true,"note":"ué中文"}
+{"event_id":"Ea7359904dc","feed_id":"EMEA-F671","seq":353514805236579,"latency_ms":null,"breach":false,"note":"éclair"}
+{"event_id":"E621945a4cb","feed_id":"AMER-F612","seq":801747432089338,"latency_ms":4595381,"breach":false,"note":"☃ snow day"}
+{"event_id":"Eed4fa59c43","feed_id":"AMER-F492","seq":134676974078867,"latency_ms":8713595,"breach":false,"note":"backfill → done"}
+{"event_id":"Eeb41704b33","feed_id":"LATAM-F048","seq":253780757190075,"latency_ms":2476394,"breach":null,"note":"📦 box"}
+{"event_id":"E703b0fb198","feed_id":"EMEA-F599","seq":399352932945213,"latency_ms":4812338,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E483fb1de62","feed_id":"AMER-F046","seq":463025428476599,"latency_ms":8368198,"breach":false,"note":""}
+{"event_id":"Ec0b7db6ca6","feed_id":"LATAM-F348","seq":132624467414773,"latency_ms":9295404,"breach":true,"note":"ok"}
+{"event_id":"E1a91d9f542","feed_id":"EMEA-F033","seq":603115052807335,"latency_ms":8423222,"breach":true,"note":"late upstream"}
+{"event_id":"E7cddd97608","feed_id":"LATAM-F458","seq":343321846954467,"latency_ms":null,"breach":null,"note":"resent by vendor"}
+{"event_id":"E4d664b020d","feed_id":"APAC-F115","seq":523091382777711,"latency_ms":5890757,"breach":true,"note":"ué中文"}
+{"event_id":"Efd79478aa3","feed_id":"LATAM-F213","seq":769300510201780,"latency_ms":null,"breach":true,"note":"éclair"}
+{"event_id":"Ef6027f0bdc","feed_id":"EMEA-F099","seq":509809351257114,"latency_ms":7390140,"breach":true,"note":"☃ snow day"}
+{"event_id":"Eb1e4ace25e","feed_id":"APAC-F442","seq":302778596217212,"latency_ms":4139845,"breach":false,"note":"backfill → done"}
+{"event_id":"Eca39057497","feed_id":"EMEA-F561","seq":746398510550709,"latency_ms":1611278,"breach":false,"note":"📦 box"}
+{"event_id":"E2b8fc71b05","feed_id":"EMEA-F993","seq":870674546824892,"latency_ms":9249217,"breach":false,"note":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+{"event_id":"E762cce23f0","feed_id":"LATAM-F745","seq":92498343948138,"latency_ms":null,"breach":true,"note":""}
+{"event_id":"E616c11c8c5","feed_id":"AMER-F229","seq":312819858024603,"latency_ms":1331027,"breach":false,"note":"ok"}
+{"event_id":"E38b4cb37c0","feed_id":"LATAM-F594","seq":186591885519817,"latency_ms":1598656,"breach":false,"note":"late upstream"}
