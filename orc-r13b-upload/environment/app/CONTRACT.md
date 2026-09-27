@@ -257,50 +257,33 @@ Row index (rowIndexStride 900):
 - every entry carries statistics; a data column's entry also carries
   the positions of its streams, concatenated in the order PRESENT
   (when the column has one), DATA, LENGTH (string columns); the root's
-  entries carry no positions at all. A stream's positions are:
-  - for every stream, two values: the offset within the stream of the
-    header of the chunk that holds the run (or, for string DATA, the
-    bytes) in which the group's first value lies, and the offset of
-    that run within the chunk's decompressed content. When the stream
-    holds no further bytes at that point, the chunk offset may instead
-    equal the stream's length (with content offset 0), and the content
-    offset may equal the chunk's content length;
-  - for an RLE v2 stream (DATA of a bigint column, LENGTH of a string
-    column) a third value: how many values a reader skips, decoding
-    from the run that begins at that content offset, to reach the
-    group's first value (0 to 511; a skip may run past that run into
-    the following ones, as the readers' own skip does);
-  - for a byte run-length stream of packed bits (every PRESENT stream,
-    and the DATA stream of the boolean column) a third value: how many
-    bytes a reader skips, decoding from the run that begins at that
-    content offset, to reach the byte holding the group's first bit
-    (0 to 129, likewise); and a fourth: how many bits of that byte
-    precede the group's first bit (0 to 7);
-  - a string DATA stream (raw bytes) carries the two offsets only:
-    together they name the content byte at which the group's first
-    value begins.
-  A string column's entry therefore holds 5 positions, a bigint
-  column's 3, the boolean column's 4, plus 4 for the PRESENT stream
-  when the column has one; the count must be exact. DATA and LENGTH
-  streams hold non-null values only, so their counts are counts of
-  non-null values, while PRESENT counts rows. The first group's
-  positions are all 0, and a stream's position never moves backwards
-  from one group to the next. The grader checks packed-bit and string
-  DATA positions exactly, from the rows: the content offset of a
-  packed-bit position is a run header (or the end of the content) and
-  the bytes decoded before that run plus the byte count reach the
-  byte holding the group's first bit - byte floor(n / 8), bit n mod 8,
-  n being the rows before the group for PRESENT and the non-null
-  values before it for the boolean DATA - and a string DATA position
-  reaches the total UTF-8 length of the column's values before the
-  group. For a stream that holds no value in or after the group
-  (every remaining row null), the same rule applies with n or the
-  byte total counting every value the stream holds: the natural
-  position, where the next value would have gone. RLE v2 positions
-  are checked for shape and bounds by the walk and for meaning by the
-  C++ reader's seek. Packed-bit streams hold exactly ceil(n / 8)
-  bytes for their n bits, and a string DATA stream is exactly the
-  UTF-8 bytes of the column's non-null values in row order.
+  entries carry no positions at all. A stream's positions are what the
+  ORC specification defines for a compressed stream of its kind and
+  encoding: the pair of offsets that locate the group's first value
+  in the chunked stream, followed by the counts the run-length
+  encodings need to resume decoding exactly there (none for the raw
+  bytes of a string DATA stream), so that a reader seeking to the
+  group's first row through the entry decodes exactly the rows from
+  that row on. Every entry of a column holds the same, exact number
+  of positions, and the walk checks each one: the first offset must
+  name a chunk of the stream (or its end) and the second a content
+  offset within that chunk; the resume counts must lie within the
+  bounds the encodings allow (511 values for an RLE v2 stream; 129
+  bytes and 7 bits for a byte run-length stream of packed bits); the
+  positions of packed-bit streams and of string DATA streams are
+  recomputed from the rows and must match exactly (a packed-bit
+  position's content offset must be a run header from which the
+  counts reach precisely the byte and bit holding the group's first
+  bit; a string DATA position must name the byte at which the group's
+  first value begins - in both cases the position a writer records at
+  the boundary, including a stream that holds no further value); the
+  first group's positions are all 0; and a stream's position never
+  moves backwards from one group to the next. RLE v2 positions are
+  checked for meaning by the C++ reader's seek. Packed-bit streams
+  hold exactly ceil(n / 8) bytes for their n bits, and a string DATA
+  stream is exactly the UTF-8 bytes of the column's non-null values in
+  row order. Like the encodings themselves, the meaning of each
+  position value is defined by the ORC format and not restated here.
 
 Bloom filters (the readers' predicate pushdown prunes row groups with
 them, so they are recomputed from the rows and compared bit for bit):
